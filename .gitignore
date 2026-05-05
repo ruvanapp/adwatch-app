@@ -1,0 +1,52 @@
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.aab
+google-services.json
+firebase-credentials.json
+
+# Backend
+backend/build/
+backend/.gradle/
+backend/out/
+backend/.idea/
+backend/*.log
+
+# Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Secrets
+*.jks
+*.keystore
+*.env
+.env.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
