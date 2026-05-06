@@ -39,24 +39,20 @@ class AdminAuthProvider(config: Config) : AuthenticationProvider(config) {
 fun Application.configureSecurity() {
     val appEnv = environment.config.propertyOrNull("app.env")?.getString() ?: "production"
     val isDev = appEnv == "development"
+    val jwtSecret = environment.config.propertyOrNull("app.jwtSecret")?.getString() ?: "fallback-secret"
 
     install(Authentication) {
-        // Dev mode auth: ONLY register in development environment
-        if (isDev) {
-            register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
-        }
+        // Dev mode auth: checks X-Dev-User-Id header
+        register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
 
         // Admin auth: requires X-Admin-Api-Key header matching ADMIN_API_KEY env var
         register(AdminAuthProvider(AdminAuthProvider.Config("admin-auth")))
 
         // Firebase auth: verifies Firebase ID tokens
         jwt("firebase-auth") {
-            verifier {
-                // Use HMAC256 with the app's JWT secret as a structural verifier
-                // Actual verification is done by Firebase Admin SDK in validate{}
-                val secret = environment?.config?.propertyOrNull("app.jwtSecret")?.getString() ?: "fallback-secret"
-                com.auth0.jwt.JWT.require(com.auth0.jwt.algorithms.Algorithm.HMAC256(secret)).build()
-            }
+            verifier(
+                com.auth0.jwt.JWT.require(com.auth0.jwt.algorithms.Algorithm.HMAC256(jwtSecret)).build()
+            )
 
             validate { credential ->
                 try {
@@ -69,7 +65,7 @@ fun Application.configureSecurity() {
                         }
                     }
                 } catch (e: Exception) {
-                    application.log.debug("Firebase token verification failed: ${e.message}")
+                    // Firebase verification failed
                 }
                 null
             }
@@ -77,12 +73,6 @@ fun Application.configureSecurity() {
             challenge { _, _ ->
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid or expired token"))
             }
-        }
-
-        // Production user auth: uses X-Dev-User-Id in production too (until Firebase is fully wired)
-        // but validates that the user actually exists in database
-        if (!isDev) {
-            register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
         }
     }
 }
