@@ -13,11 +13,16 @@ import com.adwatch.backend.data.table.*
 object DatabaseFactory {
     
     fun init(config: ApplicationConfig) {
-        val url = config.property("database.url").getString()
+        var url = config.property("database.url").getString()
         val driver = config.property("database.driver").getString()
         val user = config.property("database.user").getString()
         val password = config.property("database.password").getString()
         val maxPoolSize = config.property("database.maxPoolSize").getString().toInt()
+        
+        // Fix Railway's DATABASE_URL format (postgresql:// → jdbc:postgresql://)
+        if (url.startsWith("postgresql://")) {
+            url = "jdbc:$url"
+        }
         
         Database.connect(createHikariDataSource(url, driver, user, password, maxPoolSize))
         
