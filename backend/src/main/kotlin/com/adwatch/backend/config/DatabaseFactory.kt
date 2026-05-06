@@ -21,8 +21,7 @@ object DatabaseFactory {
             System.getenv("POSTGRES_URL"),
             System.getenv("POSTGRESQL_URL"),
             System.getenv("POSTGRES_PRIVATE_URL"),
-            System.getenv("POSTGRES_PUBLIC_URL"),
-            config.propertyOrNull("database.url")?.getString()
+            System.getenv("POSTGRES_PUBLIC_URL")
         )
         val driver = config.property("database.driver").getString()
         val maxPoolSize = config.property("database.maxPoolSize").getString().toInt()
@@ -103,19 +102,6 @@ object DatabaseFactory {
             url = url.replaceFirst("jdbc:postgres://", "jdbc:postgresql://")
         }
 
-        if (!url.startsWith("jdbc:postgresql://")) {
-            if (url.contains(".") || url.contains("railway.internal")) {
-                val host = url.substringBefore(":").substringBefore("/")
-                val port = url.substringAfter(":", "5432").substringBefore("/")
-                val database = url.substringAfter("/", firstNonBlank(
-                    System.getenv("PGDATABASE"),
-                    System.getenv("POSTGRES_DB"),
-                    System.getenv("DATABASE_NAME")
-                ) ?: "railway")
-                url = "jdbc:postgresql://$host:$port/$database"
-            }
-        }
-
         if (!url.startsWith("jdbc:postgresql://") || user.isBlank()) {
             return null
         }
@@ -127,8 +113,7 @@ object DatabaseFactory {
         val host = firstNonBlank(
             System.getenv("PGHOST"),
             System.getenv("POSTGRES_HOST"),
-            System.getenv("DATABASE_HOST"),
-            System.getenv("RAILWAY_PRIVATE_DOMAIN")
+            System.getenv("DATABASE_HOST")
         ) ?: return null
         val port = firstNonBlank(
             System.getenv("PGPORT"),
