@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdWatch Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #3b82f6; font-weight: 600; }
+        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        body { background: #f1f5f9; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Login Screen -->
+<div id="login-screen" class="flex items-center justify-center min-h-screen">
+    <div class="card w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-6">AdWatch Admin</h1>
+        <input id="api-key-input" type="password" placeholder="Enter Admin API Key"
+               class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="login()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">
+            Login
+        </button>
+        <p id="login-error" class="text-red-500 text-sm mt-2 hidden">Invalid API key</p>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-800">AdWatch Admin</h1>
+        <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">Logout</button>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="bg-white px-6 flex space-x-6 border-b overflow-x-auto">
+        <button class="tab py-3 px-1 text-sm tab-active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="cashouts" onclick="switchTab('cashouts')">Cashouts</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="analytics" onclick="switchTab('analytics')">Analytics</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="fraud" onclick="switchTab('fraud')">Fraud</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="rules" onclick="switchTab('rules')">Reward Rules</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="flags" onclick="switchTab('flags')">Feature Flags</button>
+    </nav>
+
+    <!-- Content -->
+    <main class="p-6 max-w-7xl mx-auto">
+
+        <!-- Overview Tab -->
+        <div id="tab-overview" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="card">
+                    <p class="text-sm text-gray-500">Total Users</p>
+                    <p id="stat-users" class="text-3xl font-bold text-gray-800">-</p>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray-500">Ads Watched (30d)</p>
+                    <p id="stat-sessions" class="text-3xl font-bold text-gray-800">-</p>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray-500">Pending Cashouts</p>
+                    <p id="stat-cashouts" class="text-3xl font-bold text-blue-600">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-3">30-Day Funnel</h3>
+                <div id="funnel-data" class="space-y-2 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Cashouts Tab -->
+        <div id="tab-cashouts" class="tab-content hidden">
+            <div class="card">
+                <h3 class="font-semibold mb-4">Pending Cashout Requests</h3>
+                <div id="cashouts-list" class="space-y-3"></div>
+                <p id="cashouts-empty" class="text-gray-400 text-sm hidden">No pending cashouts</p>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="tab-analytics" class="tab-content hidden">
+            <div class="card mb-4">
+                <h3 class="font-semibold mb-3">Funnel Metrics (30 days)</h3>
+                <div id="analytics-funnel" class="space-y-2"></div>
+            </div>
+            <div class="card">
+                <h3 class="font-semibold mb-3">Revenue Cohorts</h3>
+                <table class="w-full text-sm">
+                    <thead><tr class="text-left text-gray-500 border-b">
+                        <th class="py-2">Cohort</th><th>Users</th><th>Revenue (USD)</th>
+                    </tr></thead>
+                    <tbody id="cohorts-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fraud Tab -->
+        <div id="tab-fraud" class="tab-content hidden">
+            <div class="card">
+                <h3 class="font-semibold mb-4">Recent Fraud Events</h3>
+                <table class="w-full text-sm">
+                    <thead><tr class="text-left text-gray-500 border-b">
+                        <th class="py-2">User</th><th>Type</th><th>Severity</th><th>Details</th><th>Time</th>
+                    </tr></thead>
+                    <tbody id="fraud-table"></tbody>
+                </table>
+                <p id="fraud-empty" class="text-gray-400 text-sm mt-2 hidden">No fraud events</p>
+            </div>
+        </div>
+
+        <!-- Reward Rules Tab -->
+        <div id="tab-rules" class="tab-content hidden">
+            <div class="card">
+                <h3 class="font-semibold mb-4">Reward Rules by Country</h3>
+                <table class="w-full text-sm">
+                    <thead><tr class="text-left text-gray-500 border-b">
+                        <th class="py-2">Country Group</th><th>Credits/Ad</th><th>Daily Cap</th><th>Cooldown (s)</th>
+                    </tr></thead>
+                    <tbody id="rules-table"></tbody>
+                </table>
+                <p id="rules-empty" class="text-gray-400 text-sm mt-2 hidden">No rules configured</p>
+            </div>
+        </div>
+
+        <!-- Feature Flags Tab -->
+        <div id="tab-flags" class="tab-content hidden">
+            <div class="card">
+                <h3 class="font-semibold mb-4">Feature Flags</h3>
+                <div id="flags-list" class="space-y-3"></div>
+                <p id="flags-empty" class="text-gray-400 text-sm mt-2 hidden">No feature flags</p>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+const BASE = window.location.origin;
+let API_KEY = '';
+
+function getHeaders() {
+    return { 'Content-Type': 'application/json', 'X-Admin-Api-Key': API_KEY };
+}
+
+async function api(path, method = 'GET', body = null) {
+    const opts = { method, headers: getHeaders() };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(BASE + path, opts);
+    if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+    return res.json();
+}
+
+async function login() {
+    API_KEY = document.getElementById('api-key-input').value.trim();
+    if (!API_KEY) return;
+    try {
+        const res = await fetch(BASE + '/admin/cashouts', { headers: getHeaders() });
+        if (res.status === 401) {
+            document.getElementById('login-error').classList.remove('hidden');
+            return;
+        }
+        sessionStorage.setItem('adwatch_admin_key', API_KEY);
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadOverview();
+    } catch (e) {
+        document.getElementById('login-error').classList.remove('hidden');
+    }
+}
+
+function logout() {
+    sessionStorage.removeItem('adwatch_admin_key');
+    API_KEY = '';
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('tab-active'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('tab-active');
+
+    if (tab === 'overview') loadOverview();
+    if (tab === 'cashouts') loadCashouts();
+    if (tab === 'analytics') loadAnalytics();
+    if (tab === 'fraud') loadFraud();
+    if (tab === 'rules') loadRules();
+    if (tab === 'flags') loadFlags();
+}
+
+async function loadOverview() {
+    try {
+        const [funnelRes, cashoutsRes] = await Promise.all([
+            api('/analytics/funnels'),
+            api('/admin/cashouts')
+        ]);
+        const f = funnelRes.data;
+        document.getElementById('stat-users').textContent = f.signups || 0;
+        document.getElementById('stat-sessions').textContent = f.sessionsStarted || 0;
+        document.getElementById('stat-cashouts').textContent = cashoutsRes.data?.length || 0;
+        document.getElementById('funnel-data').innerHTML = `
+            <div class="flex justify-between"><span>Signups</span><span class="font-semibold">${f.signups || 0}</span></div>
+            <div class="flex justify-between"><span>Sessions Started</span><span class="font-semibold">${f.sessionsStarted || 0}</span></div>
+            <div class="flex justify-between"><span>Claims Rewarded</span><span class="font-semibold">${f.claimsRewarded || 0}</span></div>
+            <div class="flex justify-between"><span>Cashout Requested</span><span class="font-semibold">${f.cashoutRequested || 0}</span></div>
+            <div class="flex justify-between"><span>Cashout Paid</span><span class="font-semibold">${f.cashoutPaid || 0}</span></div>
+        `;
+    } catch (e) { console.error(e); }
+}
+
+async function loadCashouts() {
+    try {
+        const res = await api('/admin/cashouts');
+        const list = res.data || [];
+        const container = document.getElementById('cashouts-list');
+        const empty = document.getElementById('cashouts-empty');
+        if (list.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        container.innerHTML = list.map(c => `
+            <div class="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                    <p class="font-medium">${c.userId || c.user_id || 'Unknown'}</p>
+                    <p class="text-sm text-gray-500">${c.paypalEmail || c.paypal_email || ''} - ${c.requestedCredits || c.requested_credits || 0} credits</p>
+                    <p class="text-xs text-gray-400">${c.createdAt || c.created_at || ''}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="approveCashout('${c.id}')" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Approve</button>
+                    <button onclick="rejectCashout('${c.id}')" class="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600">Reject</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function approveCashout(id) {
+    if (!confirm('Approve this cashout?')) return;
+    try {
+        await api(`/admin/cashouts/${id}/approve`, 'POST', { reviewNote: 'Approved via admin panel' });
+        alert('Cashout approved');
+        loadCashouts();
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function rejectCashout(id) {
+    const reason = prompt('Rejection reason:');
+    if (!reason) return;
+    try {
+        await api(`/admin/cashouts/${id}/reject`, 'POST', { reviewNote: reason });
+        alert('Cashout rejected');
+        loadCashouts();
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function loadAnalytics() {
+    try {
+        const [funnelRes, cohortsRes] = await Promise.all([
+            api('/analytics/funnels'),
+            api('/analytics/cohorts/revenue')
+        ]);
+        const f = funnelRes.data;
+        document.getElementById('analytics-funnel').innerHTML = `
+            <div class="flex justify-between"><span>Signups</span><span>${f.signups || 0}</span></div>
+            <div class="flex justify-between"><span>Sessions</span><span>${f.sessionsStarted || 0}</span></div>
+            <div class="flex justify-between"><span>Rewarded</span><span>${f.claimsRewarded || 0}</span></div>
+            <div class="flex justify-between"><span>Cashout Requests</span><span>${f.cashoutRequested || 0}</span></div>
+            <div class="flex justify-between"><span>Paid Out</span><span>${f.cashoutPaid || 0}</span></div>
+        `;
+        const cohorts = cohortsRes.data?.cohorts || [];
+        document.getElementById('cohorts-table').innerHTML = cohorts.map(c => `
+            <tr class="border-b"><td class="py-2">${c.cohort}</td><td>${c.users}</td><td>$${c.cashoutRevenueUsd}</td></tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function loadFraud() {
+    try {
+        const res = await api('/admin/fraud-events');
+        const events = res.data || [];
+        const table = document.getElementById('fraud-table');
+        const empty = document.getElementById('fraud-empty');
+        if (events.length === 0) { table.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        table.innerHTML = events.map(e => `
+            <tr class="border-b">
+                <td class="py-2">${e.userId || e.user_id || ''}</td>
+                <td>${e.eventType || e.event_type || ''}</td>
+                <td>${e.severity || ''}</td>
+                <td class="text-xs">${e.details || ''}</td>
+                <td class="text-xs">${e.createdAt || e.created_at || ''}</td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function loadRules() {
+    try {
+        const res = await api('/admin/reward-rules');
+        const rules = res.data || [];
+        const table = document.getElementById('rules-table');
+        const empty = document.getElementById('rules-empty');
+        if (rules.length === 0) { table.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        table.innerHTML = rules.map(r => `
+            <tr class="border-b">
+                <td class="py-2">${r.countryGroup || r.country_group || ''}</td>
+                <td>${r.creditsPerAd || r.credits_per_ad || ''}</td>
+                <td>${r.dailyCap || r.daily_cap || ''}</td>
+                <td>${r.cooldownSeconds || r.cooldown_seconds || ''}</td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function loadFlags() {
+    try {
+        const res = await api('/admin/feature-flags');
+        const flags = res.data || [];
+        const container = document.getElementById('flags-list');
+        const empty = document.getElementById('flags-empty');
+        if (flags.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        container.innerHTML = flags.map(f => `
+            <div class="flex items-center justify-between border rounded-lg p-3">
+                <span class="font-medium">${f.key || f.flag_key || ''}</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" ${f.enabled ? 'checked' : ''} onchange="toggleFlag('${f.key || f.flag_key}', this.checked)" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function toggleFlag(key, enabled) {
+    try {
+        await api(`/admin/feature-flags/${key}`, 'POST', { enabled });
+    } catch (e) { alert('Error toggling flag'); loadFlags(); }
+}
+
+// Auto-login if key stored
+window.addEventListener('DOMContentLoaded', () => {
+    const stored = sessionStorage.getItem('adwatch_admin_key');
+    if (stored) {
+        API_KEY = stored;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadOverview();
+    }
+});
+</script>
+</body>
+</html>
