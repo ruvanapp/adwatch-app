@@ -18,11 +18,12 @@ fun Application.configureRouting() {
 
         // Admin panel (static HTML)
         get("/admin-panel") {
-            val html = this::class.java.classLoader.getResource("static/admin.html")?.readText()
+            val html = Thread.currentThread().contextClassLoader.getResource("static/admin.html")?.readText()
+                ?: javaClass.getResource("/static/admin.html")?.readText()
             if (html != null) {
                 call.respondText(html, ContentType.Text.Html)
             } else {
-                call.respondText("Admin panel not found", status = HttpStatusCode.NotFound)
+                call.respondText("Admin panel not found. Checked classpath for static/admin.html", status = HttpStatusCode.NotFound)
             }
         }
 
