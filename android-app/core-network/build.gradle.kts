@@ -13,7 +13,7 @@ android {
         minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        buildConfigField("String", "BASE_URL", "\"https://adwatch-backend.onrender.com/\"")
+        buildConfigField("String", "BASE_URL", "\"https://adwatch-app-production.up.railway.app/\"")
     }
 
     buildFeatures {
