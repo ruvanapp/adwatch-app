@@ -32,7 +32,8 @@ fun Route.cashoutRoutes() {
                     SecurityGuards.assertFeatureEnabled("cashout", userId = ctx.userId)
                     SecurityGuards.assertUserCanCashout(ctx.userId)
                     val request = call.receive<CashoutRequestDto>()
-                    if (!request.paypalEmail.contains("@")) {
+                    val emailRegex = Regex("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$")
+                    if (!emailRegex.matches(request.paypalEmail)) {
                         throw ApiFailure(HttpStatusCode.BadRequest, "INVALID_PAYPAL_EMAIL", "Invalid PayPal email")
                     }
                     if (request.requestedCredits < MIN_CASHOUT_CREDITS) {

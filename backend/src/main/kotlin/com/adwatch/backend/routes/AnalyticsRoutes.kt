@@ -8,6 +8,7 @@ import com.adwatch.backend.data.table.Users
 import com.adwatch.backend.domain.response.ApiResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.between
@@ -17,6 +18,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 fun Route.analyticsRoutes() {
+    authenticate("admin-auth") {
     route("/analytics") {
         get("/funnels") {
             try {
@@ -79,4 +81,5 @@ fun Route.analyticsRoutes() {
             }
         }
     }
+    } // authenticate("admin-auth")
 }

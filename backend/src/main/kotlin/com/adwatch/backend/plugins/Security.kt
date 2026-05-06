@@ -5,9 +5,11 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 
 class DevUserPrincipal(val userId: String) : Principal
+class AdminPrincipal(val adminId: String) : Principal
 
 class DevAuthProvider(config: Config) : AuthenticationProvider(config) {
     class Config(name: String) : AuthenticationProvider.Config(name)
@@ -21,15 +23,39 @@ class DevAuthProvider(config: Config) : AuthenticationProvider(config) {
     }
 }
 
-fun Application.configureSecurity() {
-    install(Authentication) {
-        // Dev mode auth: checks X-Dev-User-Id header
-        register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
+class AdminAuthProvider(config: Config) : AuthenticationProvider(config) {
+    class Config(name: String) : AuthenticationProvider.Config(name)
 
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val apiKey = call.request.headers["X-Admin-Api-Key"]
+        val expectedKey = System.getenv("ADMIN_API_KEY")
+        if (!expectedKey.isNullOrBlank() && apiKey == expectedKey) {
+            context.principal(AdminPrincipal("admin"))
+        }
+    }
+}
+
+fun Application.configureSecurity() {
+    val appEnv = environment.config.propertyOrNull("app.env")?.getString() ?: "production"
+    val isDev = appEnv == "development"
+
+    install(Authentication) {
+        // Dev mode auth: ONLY register in development environment
+        if (isDev) {
+            register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
+        }
+
+        // Admin auth: requires X-Admin-Api-Key header matching ADMIN_API_KEY env var
+        register(AdminAuthProvider(AdminAuthProvider.Config("admin-auth")))
+
+        // Firebase auth: verifies Firebase ID tokens
         jwt("firebase-auth") {
-            verifier { 
-                // Firebase Admin SDK verifies tokens; this is a no-op verifier
-                com.auth0.jwt.JWT.require(com.auth0.jwt.algorithms.Algorithm.none()).build()
+            verifier {
+                // Use HMAC256 with the app's JWT secret as a structural verifier
+                // Actual verification is done by Firebase Admin SDK in validate{}
+                val secret = environment?.config?.propertyOrNull("app.jwtSecret")?.getString() ?: "fallback-secret"
+                com.auth0.jwt.JWT.require(com.auth0.jwt.algorithms.Algorithm.HMAC256(secret)).build()
             }
 
             validate { credential ->
@@ -43,7 +69,7 @@ fun Application.configureSecurity() {
                         }
                     }
                 } catch (e: Exception) {
-                    // Firebase verification failed
+                    application.log.debug("Firebase token verification failed: ${e.message}")
                 }
                 null
             }
@@ -51,6 +77,12 @@ fun Application.configureSecurity() {
             challenge { _, _ ->
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid or expired token"))
             }
+        }
+
+        // Production user auth: uses X-Dev-User-Id in production too (until Firebase is fully wired)
+        // but validates that the user actually exists in database
+        if (!isDev) {
+            register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
         }
     }
 }

@@ -14,17 +14,6 @@ import com.adwatch.backend.data.table.*
 object DatabaseFactory {
 
     fun init(config: ApplicationConfig) {
-        // Debug: log all database-related env vars
-        val dbEnvVars = System.getenv().filter { (k, _) ->
-            k.contains("DATABASE", ignoreCase = true) ||
-            k.contains("POSTGRES", ignoreCase = true) ||
-            k.contains("PG", ignoreCase = true) ||
-            k.contains("REDIS", ignoreCase = true)
-        }
-        println("=== DATABASE ENV VARS ===")
-        dbEnvVars.forEach { (k, v) -> println("  $k = ${v.take(80)}") }
-        println("=== END DATABASE ENV VARS ===")
-
         val rawUrls = listOfNotNull(
             System.getenv("DATABASE_URL"),
             System.getenv("DATABASE_PRIVATE_URL"),
@@ -34,7 +23,6 @@ object DatabaseFactory {
             System.getenv("POSTGRES_PRIVATE_URL"),
             System.getenv("POSTGRES_PUBLIC_URL")
         )
-        println("rawUrls found: ${rawUrls.size} -> $rawUrls")
 
         val driver = config.property("database.driver").getString()
         val maxPoolSize = config.property("database.maxPoolSize").getString().toInt()

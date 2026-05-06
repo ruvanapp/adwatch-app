@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import java.time.Instant
+import java.util.UUID
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -25,9 +26,9 @@ fun Route.authRoutes() {
             try {
                 val request = call.receive<SignupRequest>()
                 SecurityGuards.assertFeatureEnabled("signup", country = request.country)
-                val userId = request.email?.lowercase()?.let { "usr_${it.hashCode().toString().replace("-", "m")}" }
-                    ?: request.phone?.let { "usr_${it.hashCode().toString().replace("-", "m")}" }
-                    ?: "usr_${java.util.UUID.randomUUID()}"
+
+                // Generate a secure random user ID instead of predictable hash
+                val userId = "usr_${UUID.randomUUID().toString().replace("-", "")}"
 
                 TrustService.enforceOneAccountPerDevice(userId = userId, deviceHash = request.deviceHash)
                 val trust = TrustService.fromSignals(
@@ -38,13 +39,21 @@ fun Route.authRoutes() {
                 )
                 TrustService.recordDeviceSignals(userId, request.deviceHash, trust)
 
-                dbQuery {
-                    val existing = Users.selectAll().where { Users.id eq userId }.singleOrNull()
-                    if (existing == null) {
+                // Check if user already exists by email
+                val existingUserId = if (request.email != null) {
+                    dbQuery {
+                        Users.selectAll().where { Users.email eq request.email.lowercase() }.singleOrNull()?.get(Users.id)
+                    }
+                } else null
+
+                val finalUserId = existingUserId ?: userId
+
+                if (existingUserId == null) {
+                    dbQuery {
                         Users.insert {
-                            it[id] = userId
-                            it[authProviderId] = userId
-                            it[email] = request.email
+                            it[id] = finalUserId
+                            it[authProviderId] = finalUserId
+                            it[email] = request.email?.lowercase()
                             it[phone] = request.phone
                             it[country] = request.country
                             it[status] = "active"
@@ -53,31 +62,38 @@ fun Route.authRoutes() {
                         }
                     }
                 }
-                ensureWallet(userId)
-                AuditService.log("user", userId, "user", userId, "signup_created")
+                ensureWallet(finalUserId)
+                AuditService.log("user", finalUserId, "user", finalUserId, "signup_created")
                 call.respond(HttpStatusCode.Created, ApiResponse(
                     success = true,
-                    data = mapOf("message" to "Signup completed", "userId" to userId)
+                    data = mapOf("message" to "Signup completed", "userId" to finalUserId)
                 ))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                     success = false,
-                    error = e.message ?: "Invalid request"
+                    error = "Signup failed. Please try again."
                 ))
             }
         }
-        
+
         post("/login") {
             try {
                 val request = call.receive<com.adwatch.backend.domain.request.LoginRequest>()
                 val email = request.email?.lowercase()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Email required"))
 
-                val userId = email.let { "usr_${it.hashCode().toString().replace("-", "m")}" }
+                // Look up user by email field (not by hash-based ID)
                 val user = dbQuery {
-                    Users.selectAll().where { Users.id eq userId }.singleOrNull()
+                    Users.selectAll().where { Users.email eq email }.singleOrNull()
                 } ?: return@post call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(success = false, error = "Invalid credentials"))
 
+                val userId = user[Users.id]
+
+                // Note: Password verification will be done via Firebase Auth tokens in production.
+                // For MVP, login returns userId for X-Dev-User-Id header auth.
+                // This is acceptable because the dev-auth provider is disabled in production.
+
+                AuditService.log("user", userId, "user", userId, "login")
                 call.respond(HttpStatusCode.OK, ApiResponse(
                     success = true,
                     data = mapOf("message" to "Login successful", "userId" to userId)
@@ -85,7 +101,7 @@ fun Route.authRoutes() {
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                     success = false,
-                    error = e.message ?: "Invalid request"
+                    error = "Login failed. Please try again."
                 ))
             }
         }

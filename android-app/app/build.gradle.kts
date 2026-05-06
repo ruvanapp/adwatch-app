@@ -115,7 +115,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     // AdMob
-    implementation("com.google.android.gms:play-services-ads:22.6.0")
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
 
     // Play Integrity
     implementation("com.google.android.play:integrity:1.3.0")

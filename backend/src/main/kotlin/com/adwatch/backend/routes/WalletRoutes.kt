@@ -44,8 +44,8 @@ fun Route.walletRoutes() {
             get("/ledger") {
                 try {
                     val ctx = SecurityGuards.extractUserContext(call)
-                    val page = call.parameters["page"]?.toIntOrNull() ?: 1
-                    val pageSize = call.parameters["pageSize"]?.toIntOrNull() ?: 20
+                    val page = (call.parameters["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+                    val pageSize = (call.parameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 100)
 
                     val entries = dbQuery {
                         LedgerEntries.selectAll().where { LedgerEntries.userId eq ctx.userId }

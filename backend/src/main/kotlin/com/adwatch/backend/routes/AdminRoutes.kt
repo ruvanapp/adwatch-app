@@ -29,7 +29,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.adminRoutes() {
-    // TODO: Add admin authentication
+    authenticate("admin-auth") {
     route("/admin") {
         route("/users") {
             get {
@@ -443,4 +443,5 @@ fun Route.adminRoutes() {
             }
         }
     }
+    } // authenticate("admin-auth")
 }
