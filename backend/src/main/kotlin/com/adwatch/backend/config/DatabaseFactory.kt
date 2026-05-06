@@ -14,16 +14,24 @@ import com.adwatch.backend.data.table.*
 object DatabaseFactory {
 
     fun init(config: ApplicationConfig) {
-        val rawUrl = firstNonBlank(
+        val rawUrls = listOfNotNull(
             System.getenv("DATABASE_URL"),
+            System.getenv("DATABASE_PRIVATE_URL"),
+            System.getenv("DATABASE_PUBLIC_URL"),
             System.getenv("POSTGRES_URL"),
-            System.getenv("POSTGRESQL_URL")
+            System.getenv("POSTGRESQL_URL"),
+            System.getenv("POSTGRES_PRIVATE_URL"),
+            System.getenv("POSTGRES_PUBLIC_URL"),
+            config.propertyOrNull("database.url")?.getString()
         )
-            ?: config.propertyOrNull("database.url")?.getString()
-            ?: error("DATABASE_URL is missing")
         val driver = config.property("database.driver").getString()
         val maxPoolSize = config.property("database.maxPoolSize").getString().toInt()
-        val databaseConfig = normalizeDatabaseConfig(rawUrl, config)
+        val databaseConfig = rawUrls
+            .asSequence()
+            .mapNotNull { normalizeDatabaseConfig(it, config) }
+            .firstOrNull()
+            ?: databaseConfigFromParts(config)
+            ?: error("No valid PostgreSQL database configuration found")
 
         Database.connect(
             createHikariDataSource(
@@ -60,7 +68,7 @@ object DatabaseFactory {
         val password: String
     )
 
-    private fun normalizeDatabaseConfig(rawUrl: String, config: ApplicationConfig): DatabaseConnectionConfig {
+    private fun normalizeDatabaseConfig(rawUrl: String, config: ApplicationConfig): DatabaseConnectionConfig? {
         var url = rawUrl.trim().removeSurrounding("\"")
         var user = firstNonBlank(
             System.getenv("PGUSER"),
@@ -74,6 +82,10 @@ object DatabaseFactory {
             System.getenv("DATABASE_PASSWORD"),
             config.propertyOrNull("database.password")?.getString()
         ).orEmpty()
+
+        if (url.isBlank() || url.startsWith("\${{") || url.startsWith("$")) {
+            return null
+        }
 
         if (url.startsWith("postgresql://") || url.startsWith("postgres://")) {
             val normalizedUri = URI(url.replaceFirst("postgres://", "postgresql://"))
@@ -92,30 +104,56 @@ object DatabaseFactory {
         }
 
         if (!url.startsWith("jdbc:postgresql://")) {
-            val host = firstNonBlank(
-                System.getenv("PGHOST"),
-                System.getenv("POSTGRES_HOST"),
-                System.getenv("DATABASE_HOST")
-            )
-            if (!host.isNullOrBlank()) {
-                val port = firstNonBlank(
-                    System.getenv("PGPORT"),
-                    System.getenv("POSTGRES_PORT"),
-                    System.getenv("DATABASE_PORT")
-                ) ?: "5432"
-                val database = firstNonBlank(
+            if (url.contains(".") || url.contains("railway.internal")) {
+                val host = url.substringBefore(":").substringBefore("/")
+                val port = url.substringAfter(":", "5432").substringBefore("/")
+                val database = url.substringAfter("/", firstNonBlank(
                     System.getenv("PGDATABASE"),
                     System.getenv("POSTGRES_DB"),
                     System.getenv("DATABASE_NAME")
-                ) ?: "railway"
+                ) ?: "railway")
                 url = "jdbc:postgresql://$host:$port/$database"
             }
         }
 
-        require(url.startsWith("jdbc:postgresql://")) { "Invalid PostgreSQL JDBC URL" }
-        require(user.isNotBlank()) { "DATABASE_USER is missing and DATABASE_URL has no user" }
+        if (!url.startsWith("jdbc:postgresql://") || user.isBlank()) {
+            return null
+        }
 
         return DatabaseConnectionConfig(url, user, password)
+    }
+
+    private fun databaseConfigFromParts(config: ApplicationConfig): DatabaseConnectionConfig? {
+        val host = firstNonBlank(
+            System.getenv("PGHOST"),
+            System.getenv("POSTGRES_HOST"),
+            System.getenv("DATABASE_HOST"),
+            System.getenv("RAILWAY_PRIVATE_DOMAIN")
+        ) ?: return null
+        val port = firstNonBlank(
+            System.getenv("PGPORT"),
+            System.getenv("POSTGRES_PORT"),
+            System.getenv("DATABASE_PORT")
+        ) ?: "5432"
+        val database = firstNonBlank(
+            System.getenv("PGDATABASE"),
+            System.getenv("POSTGRES_DB"),
+            System.getenv("DATABASE_NAME")
+        ) ?: "railway"
+        val user = firstNonBlank(
+            System.getenv("PGUSER"),
+            System.getenv("POSTGRES_USER"),
+            System.getenv("DATABASE_USER"),
+            config.propertyOrNull("database.user")?.getString()
+        ) ?: return null
+        val password = firstNonBlank(
+            System.getenv("PGPASSWORD"),
+            System.getenv("POSTGRES_PASSWORD"),
+            System.getenv("DATABASE_PASSWORD"),
+            config.propertyOrNull("database.password")?.getString()
+        ).orEmpty()
+
+        return DatabaseConnectionConfig("jdbc:postgresql://$host:$port/$database", user, password)
     }
 
     private fun firstNonBlank(vararg values: String?): String? =
