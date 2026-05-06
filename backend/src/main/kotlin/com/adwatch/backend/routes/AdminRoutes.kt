@@ -42,7 +42,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to fetch users"
+                        error = "Failed to fetch users"
                     ))
                 }
             }
@@ -58,7 +58,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to fetch user"
+                        error = "Failed to fetch user"
                     ))
                 }
             }
@@ -74,7 +74,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to update user status"
+                        error = "Failed to update user status"
                     ))
                 }
             }
@@ -105,7 +105,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to fetch cashouts"
+                        error = "Failed to fetch cashouts"
                     ))
                 }
             }
@@ -217,7 +217,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to approve cashout"
+                        error = "Failed to approve cashout"
                     ))
                 }
             }
@@ -268,7 +268,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to reject cashout"
+                        error = "Failed to reject cashout"
                     ))
                 }
             }
@@ -299,7 +299,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to fetch fraud events"
+                        error = "Failed to fetch fraud events"
                     ))
                 }
             }
@@ -327,7 +327,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to fetch reward rules"
+                        error = "Failed to fetch reward rules"
                     ))
                 }
             }
@@ -382,7 +382,7 @@ fun Route.adminRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to update reward rules"
+                        error = "Failed to update reward rules"
                     ))
                 }
             }
@@ -404,7 +404,7 @@ fun Route.adminRoutes() {
                     }
                     call.respond(HttpStatusCode.OK, ApiResponse(success = true, data = mapOf("flags" to flags)))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Failed to fetch feature flags"))
                 }
             }
             post("/{key}") {
@@ -438,7 +438,7 @@ fun Route.adminRoutes() {
                 } catch (e: ApiFailure) {
                     call.respond(e.status, ApiResponse<Unit>(success = false, error = e.message, code = e.code))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = e.message))
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Failed to update feature flag"))
                 }
             }
         }

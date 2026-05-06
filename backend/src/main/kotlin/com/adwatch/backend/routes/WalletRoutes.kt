@@ -37,7 +37,7 @@ fun Route.walletRoutes() {
                         )
                     ))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Failed to load wallet"))
                 }
             }
 
@@ -79,7 +79,7 @@ fun Route.walletRoutes() {
                         )
                     ))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Failed to load ledger"))
                 }
             }
         }

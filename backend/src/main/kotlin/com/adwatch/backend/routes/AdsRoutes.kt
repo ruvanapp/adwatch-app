@@ -92,7 +92,7 @@ fun Route.adsRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to start ad session"
+                        error = "Failed to start ad session"
                     ))
                 }
             }
@@ -240,7 +240,7 @@ fun Route.adsRoutes() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
                         success = false,
-                        error = e.message ?: "Failed to claim reward"
+                        error = "Failed to claim reward"
                     ))
                 }
             }

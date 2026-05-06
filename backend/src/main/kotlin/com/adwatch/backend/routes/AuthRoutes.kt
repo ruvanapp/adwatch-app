@@ -10,6 +10,7 @@ import com.adwatch.backend.config.DatabaseFactory.dbQuery
 import com.adwatch.backend.data.table.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.selectAll
 import java.time.Instant
 import java.util.UUID
@@ -77,32 +78,81 @@ fun Route.authRoutes() {
         }
 
         post("/login") {
-            try {
-                val request = call.receive<com.adwatch.backend.domain.request.LoginRequest>()
-                val email = request.email?.lowercase()
-                    ?: return@post call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Email required"))
-
-                // Look up user by email field (not by hash-based ID)
-                val user = dbQuery {
-                    Users.selectAll().where { Users.email eq email }.singleOrNull()
-                } ?: return@post call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(success = false, error = "Invalid credentials"))
-
-                val userId = user[Users.id]
-
-                // Note: Password verification will be done via Firebase Auth tokens in production.
-                // For MVP, login returns userId for X-Dev-User-Id header auth.
-                // This is acceptable because the dev-auth provider is disabled in production.
-
-                AuditService.log("user", userId, "user", userId, "login")
-                call.respond(HttpStatusCode.OK, ApiResponse(
-                    success = true,
-                    data = mapOf("message" to "Login successful", "userId" to userId)
-                ))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
+            // Email/password login is not supported. All authentication is via Google Sign-In (Firebase).
+            call.respond(
+                HttpStatusCode.Gone,
+                ApiResponse<Unit>(
                     success = false,
-                    error = "Login failed. Please try again."
-                ))
+                    error = "Email/password login is not supported. Please use Google Sign-In.",
+                    code = "USE_GOOGLE_SIGNIN"
+                )
+            )
+        }
+
+        authenticate("firebase-auth") {
+            post("/google") {
+                try {
+                    val request = call.receive<com.adwatch.backend.domain.request.SignupRequest>()
+                    val firebasePrincipal = call.principal<com.adwatch.backend.plugins.FirebaseUserPrincipal>()
+                        ?: return@post call.respond(
+                            HttpStatusCode.Unauthorized,
+                            ApiResponse<Unit>(success = false, error = "Missing Firebase principal")
+                        )
+
+                    val firebaseUid = firebasePrincipal.userId
+                    val email = firebasePrincipal.email?.lowercase()
+                    val country = request.country
+
+                    val existingUser = dbQuery {
+                        Users.selectAll().where { Users.authProviderId eq firebaseUid }.singleOrNull()
+                            ?: if (email != null) {
+                                Users.selectAll().where { Users.email eq email }.singleOrNull()
+                            } else null
+                    }
+
+                    val userId = existingUser?.get(Users.id)
+                        ?: "usr_${UUID.randomUUID().toString().replace("-", "")}"
+
+                    if (existingUser == null) {
+                        dbQuery {
+                            Users.insert {
+                                it[id] = userId
+                                it[authProviderId] = firebaseUid
+                                it[Users.email] = email
+                                it[phone] = null
+                                it[Users.country] = country
+                                it[status] = "active"
+                                it[createdAt] = Instant.now()
+                                it[updatedAt] = Instant.now()
+                            }
+                        }
+                    } else if (existingUser[Users.authProviderId] != firebaseUid) {
+                        dbQuery {
+                            Users.update({ Users.id eq userId }) {
+                                it[authProviderId] = firebaseUid
+                                if (email != null) {
+                                    it[Users.email] = email
+                                }
+                                it[updatedAt] = Instant.now()
+                            }
+                        }
+                    }
+
+                    ensureWallet(userId)
+                    AuditService.log("user", userId, "user", userId, "google_login")
+                    call.respond(
+                        HttpStatusCode.OK,
+                        ApiResponse(
+                            success = true,
+                            data = mapOf("message" to "Google login successful", "userId" to userId)
+                        )
+                    )
+                } catch (_: Exception) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        ApiResponse<Unit>(success = false, error = "Google login failed")
+                    )
+                }
             }
         }
     }

@@ -66,7 +66,7 @@ fun Route.userRoutes() {
                     )
                 ))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Failed to load profile"))
             }
         }
 
@@ -143,7 +143,7 @@ fun Route.userRoutes() {
                     data = homeResponse
                 ))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Failed to load home data"))
             }
         }
     }
