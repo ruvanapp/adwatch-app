@@ -125,6 +125,8 @@ fun Route.adsRoutes() {
                             )
                         }
                         val rule = RewardService.rewardRuleForUserInline(ctx.userId)
+                        val isGoogleTestAd = session[AdWatchSessions.adNetwork].equals("admob", ignoreCase = true) &&
+                            session[AdWatchSessions.adUnitId].startsWith("ca-app-pub-3940256099942544/")
                         val cooldownWindow = now.minusSeconds(rule.cooldownSeconds.toLong())
                         val dayStart = now.truncatedTo(java.time.temporal.ChronoUnit.DAYS)
                         val hourStart = now.truncatedTo(java.time.temporal.ChronoUnit.HOURS)
@@ -133,24 +135,27 @@ fun Route.adsRoutes() {
                             .where { AdWatchSessions.userId eq ctx.userId }
                             .orderBy(AdWatchSessions.completedAt, SortOrder.DESC)
                             .toList()
-                        val lastCompleted = userSessions.firstOrNull { it[AdWatchSessions.claimStatus] == "rewarded" && it[AdWatchSessions.completedAt] != null }
-                            ?.get(AdWatchSessions.completedAt)
-                        if (lastCompleted != null && lastCompleted.isAfter(cooldownWindow)) {
-                            throw ApiFailure(HttpStatusCode.TooManyRequests, "COOLDOWN_ACTIVE", "Reward cooldown active")
-                        }
-                        val dailyRewardedCount = userSessions.count {
-                            it[AdWatchSessions.claimStatus] == "rewarded" &&
-                                (it[AdWatchSessions.completedAt]?.isAfter(dayStart) == true || it[AdWatchSessions.completedAt] == dayStart)
-                        }
-                        if (dailyRewardedCount >= rule.dailyCap) {
-                            throw ApiFailure(HttpStatusCode.TooManyRequests, "DAILY_CAP_REACHED", "Daily reward cap reached")
-                        }
-                        val hourlyRewardedCount = userSessions.count {
-                            it[AdWatchSessions.claimStatus] == "rewarded" &&
-                                (it[AdWatchSessions.completedAt]?.isAfter(hourStart) == true || it[AdWatchSessions.completedAt] == hourStart)
-                        }
-                        if (hourlyRewardedCount >= rule.hourlyCap) {
-                            throw ApiFailure(HttpStatusCode.TooManyRequests, "HOURLY_CAP_REACHED", "Hourly reward cap reached")
+                        if (!isGoogleTestAd) {
+                            val lastCompleted = userSessions.firstOrNull {
+                                it[AdWatchSessions.claimStatus] == "rewarded" && it[AdWatchSessions.completedAt] != null
+                            }?.get(AdWatchSessions.completedAt)
+                            if (lastCompleted != null && lastCompleted.isAfter(cooldownWindow)) {
+                                throw ApiFailure(HttpStatusCode.TooManyRequests, "COOLDOWN_ACTIVE", "Reward cooldown active")
+                            }
+                            val dailyRewardedCount = userSessions.count {
+                                it[AdWatchSessions.claimStatus] == "rewarded" &&
+                                    (it[AdWatchSessions.completedAt]?.isAfter(dayStart) == true || it[AdWatchSessions.completedAt] == dayStart)
+                            }
+                            if (dailyRewardedCount >= rule.dailyCap) {
+                                throw ApiFailure(HttpStatusCode.TooManyRequests, "DAILY_CAP_REACHED", "Daily reward cap reached")
+                            }
+                            val hourlyRewardedCount = userSessions.count {
+                                it[AdWatchSessions.claimStatus] == "rewarded" &&
+                                    (it[AdWatchSessions.completedAt]?.isAfter(hourStart) == true || it[AdWatchSessions.completedAt] == hourStart)
+                            }
+                            if (hourlyRewardedCount >= rule.hourlyCap) {
+                                throw ApiFailure(HttpStatusCode.TooManyRequests, "HOURLY_CAP_REACHED", "Hourly reward cap reached")
+                            }
                         }
 
                         AdWatchSessions.update({ AdWatchSessions.id eq request.sessionId }) {
