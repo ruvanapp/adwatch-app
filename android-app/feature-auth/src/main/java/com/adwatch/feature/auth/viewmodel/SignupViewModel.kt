@@ -90,16 +90,28 @@ class SignupViewModel @Inject constructor(
                         appPreferences.setLoggedIn(true)
                         SessionManager.userId = userId
                     }
-                    // Create Firebase email/password account so the user can log back in later
+                    // Create Firebase email/password account, then get ID token for session
                     try {
-                        firebaseAuth.createUserWithEmailAndPassword(
-                            _uiState.value.email,
-                            _uiState.value.password
-                        ).await()
-                    } catch (_: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
-                        // Account already exists in Firebase — that's fine
+                        val firebaseResult = try {
+                            firebaseAuth.createUserWithEmailAndPassword(
+                                _uiState.value.email,
+                                _uiState.value.password
+                            ).await()
+                        } catch (_: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
+                            // Account already exists — sign in instead
+                            firebaseAuth.signInWithEmailAndPassword(
+                                _uiState.value.email,
+                                _uiState.value.password
+                            ).await()
+                        }
+                        val firebaseIdToken = firebaseResult.user
+                            ?.getIdToken(true)?.await()?.token
+                        if (!firebaseIdToken.isNullOrBlank() && userId != null) {
+                            appPreferences.setAuthToken(firebaseIdToken)
+                            SessionManager.authToken = firebaseIdToken
+                        }
                     } catch (_: Exception) {
-                        // Non-critical: backend account already created, ignore Firebase failure
+                        // Non-critical: backend account already created
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
