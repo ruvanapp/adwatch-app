@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">فانتازي ووتش</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">مرحباً بعودتك</string>
+    <string name="login_email">البريد الإلكتروني</string>
+    <string name="login_password">كلمة المرور</string>
+    <string name="login_btn">تسجيل الدخول</string>
+    <string name="login_google">المتابعة بحساب Google</string>
+    <string name="login_no_account">ليس لديك حساب؟ سجّل الآن</string>
+    <string name="login_loading">جارٍ تسجيل الدخول…</string>
+
+    <!-- Signup Screen -->
+    <string name="signup_title">انضم إلى فانتازي ووتش</string>
+    <string name="signup_email">البريد الإلكتروني</string>
+    <string name="signup_password">كلمة المرور</string>
+    <string name="signup_country">الدولة (مثال: US، UK، SA)</string>
+    <string name="signup_referral">كود الإحالة (اختياري)</string>
+    <string name="signup_btn">إنشاء حساب</string>
+    <string name="signup_google">التسجيل بحساب Google</string>
+    <string name="signup_have_account">لديك حساب بالفعل؟ سجّل دخولك</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">فانتازي ووتش</string>
+    <string name="home_earn_money">اكسب المال</string>
+    <string name="home_earn_subtitle">شاهد الإعلانات المكافِئة واجمع مكافآت نقدية حقيقية.</string>
+    <string name="home_your_balance">رصيدك</string>
+    <string name="home_credits">%1$s نقطة</string>
+    <string name="home_today_progress">تقدّم اليوم</string>
+    <string name="home_ads_progress">%1$d/%2$d إعلان</string>
+    <string name="home_credits_today">+%1$d نقطة اليوم</string>
+    <string name="home_watch_earn">شاهد الإعلان واكسب</string>
+    <string name="home_next_ad">الإعلان التالي خلال %1$d ثانية</string>
+    <string name="home_daily_limit">تم الوصول للحد اليومي</string>
+    <string name="home_wallet">المحفظة</string>
+    <string name="home_cashout">سحب الأرباح</string>
+    <string name="home_invite">دعوة الأصدقاء</string>
+    <string name="home_lifetime_stats">إجمالي الإحصائيات</string>
+    <string name="home_total_earned">إجمالي المكسوب:</string>
+    <string name="home_country">الدولة:</string>
+
+    <!-- Watch Ad Screen -->
+    <string name="ad_title">شاهد واكسب</string>
+    <string name="ad_earned_today">مكسوب اليوم</string>
+    <string name="ad_tap_load">اضغط أدناه لتحميل الإعلان</string>
+    <string name="ad_loading">جارٍ التحميل…</string>
+    <string name="ad_ready">الإعلان جاهز! اضغط للمشاهدة وكسب النقاط.</string>
+    <string name="ad_watching">جارٍ مشاهدة الإعلان…</string>
+    <string name="ad_rewarded">ربحت %1$s مكافأة!</string>
+    <string name="ad_watch_btn">شاهد الإعلان واكسب</string>
+    <string name="ad_load_btn">تحميل الإعلان</string>
+    <string name="ad_claiming">جارٍ استلام المكافأة…</string>
+    <string name="ad_back">العودة للرئيسية</string>
+
+    <!-- Wallet Screen -->
+    <string name="wallet_title">المحفظة</string>
+    <string name="wallet_available_balance">الرصيد المتاح</string>
+    <string name="wallet_breakdown">تفصيل الرصيد</string>
+    <string name="wallet_available">متاح</string>
+    <string name="wallet_pending">معلّق</string>
+    <string name="wallet_reserved">محجوز (سحب)</string>
+    <string name="wallet_lifetime">إجمالي المكسوب</string>
+    <string name="wallet_history">سجل المعاملات</string>
+    <string name="wallet_no_transactions">لا توجد معاملات بعد</string>
+    <string name="wallet_load_more">تحميل المزيد</string>
+    <string name="wallet_ad_reward">مكافأة إعلان</string>
+    <string name="wallet_cashout_reserved">سحب محجوز</string>
+    <string name="wallet_cashout_paid">سحب مدفوع</string>
+    <string name="wallet_cashout_reversed">سحب مُرجَع</string>
+    <string name="wallet_adjustment">تعديل</string>
+
+    <!-- Cashout Screen -->
+    <string name="cashout_title">سحب الأرباح</string>
+    <string name="cashout_paypal_info">سحب عبر PayPal</string>
+    <string name="cashout_paypal_desc">الحد الأدنى: 500 نقطة (5 دولار). يتم مراجعة الطلبات خلال 24–48 ساعة.</string>
+    <string name="cashout_paypal_email">بريد PayPal الإلكتروني</string>
+    <string name="cashout_credits_label">النقاط المراد سحبها</string>
+    <string name="cashout_usd_equiv">= %1$s دولار</string>
+    <string name="cashout_btn">طلب سحب الأرباح</string>
+    <string name="cashout_history">سجل السحوبات</string>
+    <string name="cashout_status_pending">قيد المراجعة</string>
+    <string name="cashout_status_approved">تمت الموافقة</string>
+    <string name="cashout_status_paid">مدفوع</string>
+    <string name="cashout_status_rejected">مرفوض</string>
+    <string name="cashout_status_hold">معلّق</string>
+
+    <!-- Referral Screen -->
+    <string name="referral_title">اكسب من الإحالات</string>
+    <string name="referral_hero_title">ادعُ الأصدقاء</string>
+    <string name="referral_hero_subtitle">شارك كودك، وسّع فريقك، واكسب عمولة في كل مرة يبدأ فيها أصدقاؤك بالكسب.</string>
+    <string name="referral_your_code">كود الإحالة الخاص بك</string>
+    <string name="referral_copy">نسخ</string>
+    <string name="referral_share">مشاركة</string>
+    <string name="referral_earnings">أرباح الإحالة</string>
+    <string name="referral_invited">المستخدمون المدعوون</string>
+    <string name="referral_active">الإحالات النشطة</string>
+    <string name="referral_total_earned">إجمالي المكسوب</string>
+    <string name="referral_tracking">تتبع الإحالات</string>
+    <string name="referral_pending">معلّق</string>
+    <string name="referral_approved">مقبول</string>
+    <string name="referral_rejected">مرفوض</string>
+    <string name="referral_share_social">مشاركة عبر التطبيقات</string>
+    <string name="referral_recent">الإحالات الأخيرة</string>
+    <string name="referral_status">الحالة: %1$s</string>
+    <string name="referral_commission">العمولة: %1$d نقطة</string>
+    <string name="referral_fraud">احتيال: %1$s</string>
+    <string name="referral_leaderboard">المتصدّرون</string>
+    <string name="referral_share_message">انضم معي في فانتازي ووتش واكسب مكافآت: %1$s</string>
+    <string name="referral_copied">تم نسخ %1$s</string>
+    <string name="credits_label">%1$d نقطة</string>
+</resources>

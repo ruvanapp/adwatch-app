@@ -11,9 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.adwatch.core.ui.R
 import com.adwatch.feature.auth.viewmodel.SignupViewModel
 
 @Composable
@@ -53,7 +55,7 @@ fun SignupScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Join Fantasy Watch",
+            text = stringResource(R.string.signup_title),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
@@ -63,7 +65,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = uiState.email,
             onValueChange = viewModel::onEmailChanged,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.signup_email)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             enabled = !uiState.isLoading
@@ -74,7 +76,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = uiState.password,
             onValueChange = viewModel::onPasswordChanged,
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.signup_password)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -86,7 +88,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = uiState.country,
             onValueChange = viewModel::onCountryChanged,
-            label = { Text("Country (e.g., US, UK, IN)") },
+            label = { Text(stringResource(R.string.signup_country)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             enabled = !uiState.isLoading
@@ -97,7 +99,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = uiState.referralCode,
             onValueChange = viewModel::onReferralCodeChanged,
-            label = { Text("Referral Code (optional)") },
+            label = { Text(stringResource(R.string.signup_referral)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             enabled = !uiState.isLoading
@@ -128,7 +130,7 @@ fun SignupScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Sign Up")
+                Text(stringResource(R.string.signup_btn))
             }
         }
 
@@ -139,7 +141,7 @@ fun SignupScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
-            Text("Sign up with Google")
+            Text(stringResource(R.string.signup_google))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -148,7 +150,7 @@ fun SignupScreen(
             onClick = onNavigateToLogin,
             enabled = !uiState.isLoading
         ) {
-            Text("Already have an account? Log in")
+            Text(stringResource(R.string.signup_have_account))
         }
     }
 }

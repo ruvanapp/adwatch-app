@@ -7,9 +7,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.adwatch.core.ui.R
 
 @Composable
 fun WatchAdScreen(
@@ -20,7 +22,6 @@ fun WatchAdScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // Load ad on first composition
     LaunchedEffect(Unit) {
         viewModel.loadAd()
     }
@@ -33,30 +34,24 @@ fun WatchAdScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Watch & Earn",
+            text = stringResource(R.string.ad_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Credits earned today
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(stringResource(R.string.ad_earned_today), style = MaterialTheme.typography.labelLarge)
                 Text(
-                    text = "Earned Today",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Text(
-                    text = "${uiState.totalEarnedToday} credits",
+                    text = stringResource(R.string.credits_label, uiState.totalEarnedToday),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -65,11 +60,10 @@ fun WatchAdScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Ad state indicator
         when (uiState.adState) {
             is AdState.Idle -> {
                 Text(
-                    text = "Tap below to load an ad",
+                    text = stringResource(R.string.ad_tap_load),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center
                 )
@@ -77,11 +71,11 @@ fun WatchAdScreen(
             is AdState.Loading -> {
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Loading ad...")
+                Text(stringResource(R.string.ad_loading))
             }
             is AdState.Ready -> {
                 Text(
-                    text = "Ad ready! Tap to watch and earn credits.",
+                    text = stringResource(R.string.ad_ready),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.primary
@@ -90,20 +84,19 @@ fun WatchAdScreen(
             is AdState.Showing -> {
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Watching ad...")
+                Text(stringResource(R.string.ad_watching))
             }
             is AdState.Rewarded -> {
                 val rewarded = uiState.adState as AdState.Rewarded
                 Text(
-                    text = "You earned ${rewarded.amount} reward!",
+                    text = stringResource(R.string.ad_rewarded, rewarded.amount),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             is AdState.Error -> {
-                val error = uiState.adState as AdState.Error
                 Text(
-                    text = error.message,
+                    text = (uiState.adState as AdState.Error).message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -112,29 +105,18 @@ fun WatchAdScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Success message
         if (uiState.message != null) {
-            Text(
-                text = uiState.message!!,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Text(text = uiState.message!!, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Error message
         if (uiState.error != null) {
-            Text(
-                text = uiState.error!!,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
-            )
+            Text(text = uiState.error!!, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Watch Ad Button
         Button(
             onClick = {
                 if (uiState.adState is AdState.Ready && activity != null) {
@@ -147,32 +129,30 @@ fun WatchAdScreen(
                     viewModel.loadAd()
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             enabled = uiState.adState is AdState.Ready || uiState.adState is AdState.Idle || uiState.adState is AdState.Error
         ) {
-            when (uiState.adState) {
-                is AdState.Ready -> Text("Watch Ad to Earn", style = MaterialTheme.typography.titleMedium)
-                is AdState.Loading -> Text("Loading...")
-                is AdState.Showing -> Text("Watching...")
-                else -> Text("Load Ad", style = MaterialTheme.typography.titleMedium)
-            }
+            Text(
+                when (uiState.adState) {
+                    is AdState.Ready -> stringResource(R.string.ad_watch_btn)
+                    is AdState.Loading -> stringResource(R.string.ad_loading)
+                    is AdState.Showing -> stringResource(R.string.ad_watching)
+                    else -> stringResource(R.string.ad_load_btn)
+                },
+                style = MaterialTheme.typography.titleMedium
+            )
         }
 
         if (uiState.isClaimingReward) {
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            Text("Claiming reward...", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.ad_claiming), style = MaterialTheme.typography.bodySmall)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedButton(
-            onClick = onBackToHome,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Back to Home")
+        OutlinedButton(onClick = onBackToHome, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.ad_back))
         }
     }
 }

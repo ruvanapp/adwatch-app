@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Fantasy Watch</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_btn">Log In</string>
+    <string name="login_google">Continue with Google</string>
+    <string name="login_no_account">Don\'t have an account? Sign up</string>
+    <string name="login_loading">Logging in…</string>
+
+    <!-- Signup Screen -->
+    <string name="signup_title">Join Fantasy Watch</string>
+    <string name="signup_email">Email</string>
+    <string name="signup_password">Password</string>
+    <string name="signup_country">Country (e.g., US, UK, IN)</string>
+    <string name="signup_referral">Referral Code (optional)</string>
+    <string name="signup_btn">Sign Up</string>
+    <string name="signup_google">Sign up with Google</string>
+    <string name="signup_have_account">Already have an account? Log in</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Fantasy Watch</string>
+    <string name="home_earn_money">EARN MONEY</string>
+    <string name="home_earn_subtitle">Watch rewarded ads and collect real cash rewards.</string>
+    <string name="home_your_balance">Your Balance</string>
+    <string name="home_credits">%1$s credits</string>
+    <string name="home_today_progress">Today\'s Progress</string>
+    <string name="home_ads_progress">%1$d/%2$d ads</string>
+    <string name="home_credits_today">+%1$d credits today</string>
+    <string name="home_watch_earn">Watch Ad &amp; Earn</string>
+    <string name="home_next_ad">Next ad in %1$ds</string>
+    <string name="home_daily_limit">Daily limit reached</string>
+    <string name="home_wallet">Wallet</string>
+    <string name="home_cashout">Cash Out</string>
+    <string name="home_invite">Invite Friends</string>
+    <string name="home_lifetime_stats">Lifetime Stats</string>
+    <string name="home_total_earned">Total earned:</string>
+    <string name="home_country">Country:</string>
+
+    <!-- Watch Ad Screen -->
+    <string name="ad_title">Watch &amp; Earn</string>
+    <string name="ad_earned_today">Earned Today</string>
+    <string name="ad_tap_load">Tap below to load an ad</string>
+    <string name="ad_loading">Loading ad…</string>
+    <string name="ad_ready">Ad ready! Tap to watch and earn credits.</string>
+    <string name="ad_watching">Watching ad…</string>
+    <string name="ad_rewarded">You earned %1$s reward!</string>
+    <string name="ad_watch_btn">Watch Ad to Earn</string>
+    <string name="ad_load_btn">Load Ad</string>
+    <string name="ad_claiming">Claiming reward…</string>
+    <string name="ad_back">Back to Home</string>
+
+    <!-- Wallet Screen -->
+    <string name="wallet_title">Wallet</string>
+    <string name="wallet_available_balance">Available Balance</string>
+    <string name="wallet_breakdown">Breakdown</string>
+    <string name="wallet_available">Available</string>
+    <string name="wallet_pending">Pending</string>
+    <string name="wallet_reserved">Reserved (cashout)</string>
+    <string name="wallet_lifetime">Lifetime earned</string>
+    <string name="wallet_history">Transaction History</string>
+    <string name="wallet_no_transactions">No transactions yet</string>
+    <string name="wallet_load_more">Load More</string>
+    <string name="wallet_ad_reward">Ad Reward</string>
+    <string name="wallet_cashout_reserved">Cashout Reserved</string>
+    <string name="wallet_cashout_paid">Cashout Paid</string>
+    <string name="wallet_cashout_reversed">Cashout Returned</string>
+    <string name="wallet_adjustment">Adjustment</string>
+
+    <!-- Cashout Screen -->
+    <string name="cashout_title">Cash Out</string>
+    <string name="cashout_paypal_info">PayPal Cashout</string>
+    <string name="cashout_paypal_desc">Minimum: 500 credits ($5.00). Requests are reviewed within 24–48 hours.</string>
+    <string name="cashout_paypal_email">PayPal Email</string>
+    <string name="cashout_credits_label">Credits to withdraw</string>
+    <string name="cashout_usd_equiv">= $%1$s USD</string>
+    <string name="cashout_btn">Request Cashout</string>
+    <string name="cashout_history">Cashout History</string>
+    <string name="cashout_status_pending">Pending</string>
+    <string name="cashout_status_approved">Approved</string>
+    <string name="cashout_status_paid">Paid</string>
+    <string name="cashout_status_rejected">Rejected</string>
+    <string name="cashout_status_hold">On Hold</string>
+
+    <!-- Referral Screen -->
+    <string name="referral_title">Earn From Referrals</string>
+    <string name="referral_hero_title">Invite Friends</string>
+    <string name="referral_hero_subtitle">Share your code, grow your team, and earn commission every time your friends start earning.</string>
+    <string name="referral_your_code">Your Referral Code</string>
+    <string name="referral_copy">Copy</string>
+    <string name="referral_share">Share</string>
+    <string name="referral_earnings">Referral Earnings</string>
+    <string name="referral_invited">Invited Users</string>
+    <string name="referral_active">Active Referrals</string>
+    <string name="referral_total_earned">Total Earned</string>
+    <string name="referral_tracking">Referral Tracking</string>
+    <string name="referral_pending">Pending</string>
+    <string name="referral_approved">Approved</string>
+    <string name="referral_rejected">Rejected</string>
+    <string name="referral_share_social">Share to Social Apps</string>
+    <string name="referral_recent">Recent Referrals</string>
+    <string name="referral_status">Status: %1$s</string>
+    <string name="referral_commission">Commission: %1$d credits</string>
+    <string name="referral_fraud">Fraud: %1$s</string>
+    <string name="referral_leaderboard">Referral Leaderboard</string>
+    <string name="referral_share_message">Join me on Fantasy Watch and earn rewards: %1$s</string>
+    <string name="referral_copied">%1$s copied</string>
+    <string name="credits_label">%1$d credits</string>
+</resources>
