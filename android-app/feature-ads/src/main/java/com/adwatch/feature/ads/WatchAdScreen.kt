@@ -23,7 +23,7 @@ fun WatchAdScreen(
     val activity = context as? Activity
 
     LaunchedEffect(Unit) {
-        viewModel.loadAd()
+        if (activity != null) viewModel.loadAd(activity)
     }
 
     Column(
@@ -126,7 +126,7 @@ fun WatchAdScreen(
                     }
                 } else if (uiState.adState is AdState.Idle || uiState.adState is AdState.Error) {
                     viewModel.clearMessage()
-                    viewModel.loadAd()
+                    if (activity != null) viewModel.loadAd(activity)
                 }
             },
             modifier = Modifier.fillMaxWidth().height(56.dp),

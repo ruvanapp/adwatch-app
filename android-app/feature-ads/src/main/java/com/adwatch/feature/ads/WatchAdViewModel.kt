@@ -1,5 +1,6 @@
 package com.adwatch.feature.ads
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,8 +39,8 @@ class WatchAdViewModel @Inject constructor(
         }
     }
 
-    fun loadAd() {
-        rewardedAdManager.loadAd()
+    fun loadAd(activity: Activity) {
+        rewardedAdManager.loadAd(activity)
     }
 
     fun startAdSession() {

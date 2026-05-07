@@ -3,7 +3,8 @@ package com.adwatch.app
 import android.app.Application
 import com.adwatch.core.network.interceptor.SessionManager
 import com.adwatch.core.storage.preferences.AppPreferences
-import com.google.android.gms.ads.MobileAds
+import com.applovin.sdk.AppLovinMediationProvider
+import com.applovin.sdk.AppLovinSdk
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.flow.first
@@ -22,21 +23,18 @@ class AdWatchApplication : Application() {
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
 
-        // Initialize AdMob
-        MobileAds.initialize(this) { initializationStatus ->
-            // AdMob SDK initialized
+        // Initialize AppLovin MAX
+        AppLovinSdk.getInstance(this).apply {
+            mediationProvider = AppLovinMediationProvider.MAX
+            initializeSdk { /* SDK ready */ }
         }
 
         // Restore auth session from storage
         runBlocking {
             val userId = appPreferences.userId.first()
             val authToken = appPreferences.authToken.first()
-            if (userId != null) {
-                SessionManager.userId = userId
-            }
-            if (authToken != null) {
-                SessionManager.authToken = authToken
-            }
+            if (userId != null) SessionManager.userId = userId
+            if (authToken != null) SessionManager.authToken = authToken
         }
     }
 }

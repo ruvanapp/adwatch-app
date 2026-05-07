@@ -114,8 +114,8 @@ dependencies {
     // Crashlytics
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 
-    // AdMob
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
+    // AppLovin MAX (replaces AdMob)
+    implementation("com.applovin:applovin-sdk:12.1.0")
 
     // Play Integrity
     implementation("com.google.android.play:integrity:1.3.0")
