@@ -14,7 +14,6 @@ import com.adwatch.backend.data.table.Wallets
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.config.*
 import io.ktor.server.request.*
 import kotlinx.serialization.json.JsonObject
@@ -71,8 +70,18 @@ object SecurityGuards {
             return UserContext(userId = userId, ipHash = ipHash, userAgent = userAgent)
         }
 
-        // Fall back to Firebase JWT principal
-        val principal = call.principal<JWTPrincipal>()
+        val firebasePrincipal = call.principal<com.adwatch.backend.plugins.FirebaseUserPrincipal>()
+        if (firebasePrincipal != null) {
+            val userId = firebasePrincipal.userId
+            val ip = call.request.headers["X-Forwarded-For"]?.split(",")?.firstOrNull()?.trim()
+                ?: call.request.local.remoteHost
+            val ipHash = Hashing.sha256(ip)
+            val userAgent = call.request.headers["User-Agent"]
+            return UserContext(userId = userId, ipHash = ipHash, userAgent = userAgent)
+        }
+
+        // Fall back to JWT principal if present
+        val principal = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()
             ?: throw ApiFailure(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Missing auth principal")
         val userId = principal.payload.getClaim("user_id").asString()
             ?: principal.payload.subject

@@ -54,8 +54,12 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     
-    // Firebase Auth
+    // Firebase Auth / Google Sign-In
     implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 }
 
 ksp {

@@ -1,10 +1,13 @@
 package com.adwatch.feature.auth.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,6 +24,7 @@ fun SignupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
     
     LaunchedEffect(uiState.isSignedUp) {
         if (uiState.isSignedUp) {
@@ -32,12 +36,21 @@ fun SignupScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            )
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Create Account",
+            text = "Join Fantasy Watch",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
@@ -103,6 +116,21 @@ fun SignupScreen(
             } else {
                 Text("Sign Up")
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = {
+                val activity = context as? android.app.Activity
+                if (activity != null) {
+                    viewModel.signupWithGoogle(activity)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading
+        ) {
+            Text("Sign up with Google")
         }
         
         Spacer(modifier = Modifier.height(16.dp))

@@ -43,7 +43,8 @@ class WalletViewModel @Inject constructor(
                 if (response.success && response.data != null) {
                     val wallet = response.data.wallet
                     val credits = wallet?.availableCredits ?: 0
-                    val usd = credits / (response.data.creditsToUsdRate)
+                    val rate = response.data.creditsToUsdRate.takeIf { it > 0 } ?: 100.0
+                    val usd = credits / rate
 
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -53,6 +54,11 @@ class WalletViewModel @Inject constructor(
                         lifetimeCredits = wallet?.lifetimeEarnedCredits ?: 0,
                         usdEquivalent = "$${String.format("%.2f", usd)}",
                         error = null
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = response.error ?: "Failed to load wallet"
                     )
                 }
             } catch (e: Exception) {

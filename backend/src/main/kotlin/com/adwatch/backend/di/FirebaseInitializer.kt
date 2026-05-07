@@ -5,14 +5,20 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.auth.oauth2.GoogleCredentials
 import io.ktor.server.config.*
+import java.io.ByteArrayInputStream
 import java.io.FileInputStream
 
 object FirebaseInitializer {
     
     fun initialize(config: ApplicationConfig) {
         try {
-            val credentialsPath = config.property("firebase.credentialsPath").getString()
-            val serviceAccount = FileInputStream(credentialsPath)
+            val credentialsJson = System.getenv("FIREBASE_CREDENTIALS_JSON")
+            val serviceAccount = if (!credentialsJson.isNullOrBlank()) {
+                ByteArrayInputStream(credentialsJson.toByteArray())
+            } else {
+                val credentialsPath = config.property("firebase.credentialsPath").getString()
+                FileInputStream(credentialsPath)
+            }
             
             val options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))

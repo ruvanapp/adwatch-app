@@ -25,6 +25,7 @@ class AppPreferences @Inject constructor(
     companion object {
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
         private val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
         private val ONBOARDING_COMPLETE_KEY = booleanPreferencesKey("onboarding_complete")
     }
@@ -35,6 +36,10 @@ class AppPreferences @Inject constructor(
     
     val userEmail: Flow<String?> = dataStore.data.map { prefs ->
         prefs[USER_EMAIL_KEY]
+    }
+
+    val authToken: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[AUTH_TOKEN_KEY]
     }
     
     val isLoggedIn: Flow<Boolean> = dataStore.data.map { prefs ->
@@ -61,6 +66,16 @@ class AppPreferences @Inject constructor(
                 prefs[USER_EMAIL_KEY] = email
             } else {
                 prefs.remove(USER_EMAIL_KEY)
+            }
+        }
+    }
+
+    suspend fun setAuthToken(token: String?) {
+        dataStore.edit { prefs ->
+            if (token != null) {
+                prefs[AUTH_TOKEN_KEY] = token
+            } else {
+                prefs.remove(AUTH_TOKEN_KEY)
             }
         }
     }

@@ -80,6 +80,16 @@ fun WalletScreen(
                     }
                 }
 
+                if (uiState.error != null) {
+                    item {
+                        Text(
+                            text = uiState.error ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
                 // Ledger header
                 item {
                     Text(

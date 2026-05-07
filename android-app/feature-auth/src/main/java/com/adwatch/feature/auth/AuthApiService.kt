@@ -2,6 +2,7 @@ package com.adwatch.feature.auth
 
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 @Serializable
@@ -36,6 +37,12 @@ data class LoginRequest(
 )
 
 @Serializable
+data class GoogleLoginRequest(
+    val country: String,
+    val deviceHash: String = "android_device"
+)
+
+@Serializable
 data class LoginResponse(
     val success: Boolean,
     val data: LoginData? = null,
@@ -55,4 +62,10 @@ interface AuthApiService {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("auth/google")
+    suspend fun loginWithGoogle(
+        @Header("Authorization") authorization: String,
+        @Body request: GoogleLoginRequest
+    ): LoginResponse
 }

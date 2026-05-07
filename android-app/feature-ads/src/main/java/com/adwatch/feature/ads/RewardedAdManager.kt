@@ -29,8 +29,7 @@ class RewardedAdManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
-        // Production ad unit ID
-        const val AD_UNIT_ID = "ca-app-pub-4215258396713221/9286614060"
+        const val AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
     }
 
     private var rewardedAd: RewardedAd? = null

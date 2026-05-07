@@ -30,8 +30,12 @@ class AdWatchApplication : Application() {
         // Restore auth session from storage
         runBlocking {
             val userId = appPreferences.userId.first()
+            val authToken = appPreferences.authToken.first()
             if (userId != null) {
                 SessionManager.userId = userId
+            }
+            if (authToken != null) {
+                SessionManager.authToken = authToken
             }
         }
     }
