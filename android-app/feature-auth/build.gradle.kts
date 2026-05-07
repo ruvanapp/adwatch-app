@@ -56,9 +56,7 @@ dependencies {
     
     // Firebase Auth / Google Sign-In
     implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 }
 

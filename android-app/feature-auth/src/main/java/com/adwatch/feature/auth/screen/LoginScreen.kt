@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material3.*
@@ -17,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adwatch.feature.auth.viewmodel.LoginViewModel
 
@@ -27,12 +28,15 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
+    }
+
     LaunchedEffect(uiState.isLoggedIn) {
-        if (uiState.isLoggedIn) {
-            onLoginSuccess()
-        }
+        if (uiState.isLoggedIn) onLoginSuccess()
     }
     
     Column(
@@ -153,12 +157,7 @@ fun LoginScreen(
         }
 
         OutlinedButton(
-            onClick = {
-                val activity = context as? android.app.Activity
-                if (activity != null) {
-                    viewModel.loginWithGoogle(activity)
-                }
-            },
+            onClick = { googleLauncher.launch(viewModel.getGoogleSignInIntent()) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {

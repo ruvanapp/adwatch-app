@@ -1,8 +1,11 @@
 package com.adwatch.feature.auth.screen
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,9 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adwatch.feature.auth.viewmodel.SignupViewModel
 
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-
 @Composable
 fun SignupScreen(
     onNavigateToLogin: () -> Unit,
@@ -24,14 +24,17 @@ fun SignupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
-    
-    LaunchedEffect(uiState.isSignedUp) {
-        if (uiState.isSignedUp) {
-            onSignupSuccess()
-        }
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
     }
-    
+
+    LaunchedEffect(uiState.isSignedUp) {
+        if (uiState.isSignedUp) onSignupSuccess()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,9 +57,9 @@ fun SignupScreen(
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         OutlinedTextField(
             value = uiState.email,
             onValueChange = viewModel::onEmailChanged,
@@ -65,9 +68,9 @@ fun SignupScreen(
             singleLine = true,
             enabled = !uiState.isLoading
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         OutlinedTextField(
             value = uiState.password,
             onValueChange = viewModel::onPasswordChanged,
@@ -77,9 +80,9 @@ fun SignupScreen(
             visualTransformation = PasswordVisualTransformation(),
             enabled = !uiState.isLoading
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         OutlinedTextField(
             value = uiState.country,
             onValueChange = viewModel::onCountryChanged,
@@ -99,9 +102,9 @@ fun SignupScreen(
             singleLine = true,
             enabled = !uiState.isLoading
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         if (uiState.error != null) {
             Text(
                 text = uiState.error!!,
@@ -110,14 +113,14 @@ fun SignupScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
-        
+
         Button(
             onClick = viewModel::signup,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading && 
-                     uiState.email.isNotBlank() && 
-                     uiState.password.isNotBlank() && 
-                     uiState.country.isNotBlank()
+            enabled = !uiState.isLoading &&
+                    uiState.email.isNotBlank() &&
+                    uiState.password.isNotBlank() &&
+                    uiState.country.isNotBlank()
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -132,20 +135,15 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = {
-                val activity = context as? android.app.Activity
-                if (activity != null) {
-                    viewModel.signupWithGoogle(activity)
-                }
-            },
+            onClick = { googleLauncher.launch(viewModel.getGoogleSignInIntent()) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
             Text("Sign up with Google")
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         TextButton(
             onClick = onNavigateToLogin,
             enabled = !uiState.isLoading

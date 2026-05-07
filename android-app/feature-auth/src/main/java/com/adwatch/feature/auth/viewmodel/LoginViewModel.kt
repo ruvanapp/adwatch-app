@@ -1,6 +1,5 @@
 package com.adwatch.feature.auth.viewmodel
 
-import android.app.Activity
 import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -101,12 +100,13 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun loginWithGoogle(activity: Activity) {
+    fun getGoogleSignInIntent() = googleAuthManager.getSignInIntent()
+
+    fun handleGoogleSignInResult(data: android.content.Intent?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-
             try {
-                val idToken = googleAuthManager.getIdToken(activity)
+                val idToken = googleAuthManager.extractIdToken(data)
                 val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
                 val authResult = firebaseAuth.signInWithCredential(credential).await()
                 val firebaseUser = authResult.user ?: throw IllegalStateException("Google user not found")
@@ -127,10 +127,7 @@ class LoginViewModel @Inject constructor(
                     appPreferences.setLoggedIn(true)
                     SessionManager.userId = userId
                     SessionManager.authToken = firebaseIdToken
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isLoggedIn = true
-                    )
+                    _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -140,7 +137,8 @@ class LoginViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Google login failed"
+                    error = if (e.message?.contains("cancel", ignoreCase = true) == true)
+                        "Sign-in cancelled" else (e.message ?: "Google sign-in failed")
                 )
             }
         }
