@@ -14,6 +14,8 @@ class DevAuthProvider(config: Config) : AuthenticationProvider(config) {
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
+        val appEnv = call.application.environment.config.propertyOrNull("app.env")?.getString() ?: "production"
+        if (appEnv != "development") return
         val devUserId = call.request.headers["X-Dev-User-Id"]
         if (devUserId != null) {
             context.principal(DevUserPrincipal(devUserId))
@@ -58,13 +60,8 @@ class FirebaseAuthProvider(config: Config) : AuthenticationProvider(config) {
 }
 
 fun Application.configureSecurity() {
-    val appEnv = environment.config.propertyOrNull("app.env")?.getString() ?: "production"
-
     install(Authentication) {
-        if (appEnv == "development") {
-            register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
-        }
-
+        register(DevAuthProvider(DevAuthProvider.Config("dev-auth")))
         register(AdminAuthProvider(AdminAuthProvider.Config("admin-auth")))
         register(FirebaseAuthProvider(FirebaseAuthProvider.Config("firebase-auth")))
     }
