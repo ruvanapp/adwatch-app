@@ -14,6 +14,9 @@ class AuthInterceptor : Interceptor {
 
         if (!authToken.isNullOrBlank()) {
             newRequestBuilder.header("Authorization", "Bearer $authToken")
+            if (!userId.isNullOrBlank()) {
+                newRequestBuilder.header("X-App-User-Id", userId)
+            }
         } else if (!userId.isNullOrBlank()) {
             newRequestBuilder.header("X-Dev-User-Id", userId)
         }

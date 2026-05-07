@@ -58,7 +58,9 @@ data class RiskEvaluation(
 )
 
 object SecurityGuards {
-    fun extractUserContext(call: ApplicationCall): UserContext {
+    suspend fun extractUserContext(call: ApplicationCall): UserContext {
+        val resolvedUserIdFromHeader = call.request.headers["X-App-User-Id"]?.trim().takeUnless { it.isNullOrBlank() }
+
         // Try dev-auth principal first
         val devPrincipal = call.principal<com.adwatch.backend.plugins.DevUserPrincipal>()
         if (devPrincipal != null) {
@@ -72,7 +74,11 @@ object SecurityGuards {
 
         val firebasePrincipal = call.principal<com.adwatch.backend.plugins.FirebaseUserPrincipal>()
         if (firebasePrincipal != null) {
-            val userId = firebasePrincipal.userId
+            val userId = resolvedUserIdFromHeader ?: dbQuery {
+                Users.selectAll().where { Users.authProviderId eq firebasePrincipal.userId }
+                    .singleOrNull()
+                    ?.get(Users.id)
+            } ?: throw ApiFailure(HttpStatusCode.Unauthorized, "USER_NOT_FOUND", "Authenticated user not provisioned")
             val ip = call.request.headers["X-Forwarded-For"]?.split(",")?.firstOrNull()?.trim()
                 ?: call.request.local.remoteHost
             val ipHash = Hashing.sha256(ip)

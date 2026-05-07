@@ -18,6 +18,7 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.ContentType)
         allowHeader("X-Dev-User-Id")
         allowHeader("X-Admin-Api-Key")
+        allowHeader("X-App-User-Id")
 
         if (appEnv == "development") {
             anyHost()
