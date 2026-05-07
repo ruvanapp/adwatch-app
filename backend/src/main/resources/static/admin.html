@@ -45,6 +45,7 @@
         <button class="tab py-3 px-1 text-sm" data-tab="fraud" onclick="switchTab('fraud')">Fraud</button>
         <button class="tab py-3 px-1 text-sm" data-tab="rules" onclick="switchTab('rules')">Reward Rules</button>
         <button class="tab py-3 px-1 text-sm" data-tab="flags" onclick="switchTab('flags')">Feature Flags</button>
+        <button class="tab py-3 px-1 text-sm" data-tab="referrals" onclick="switchTab('referrals')">Referrals</button>
     </nav>
 
     <!-- Content -->
@@ -135,6 +136,59 @@
             </div>
         </div>
 
+        <div id="tab-referrals" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="card">
+                    <p class="text-sm text-gray-500">Total Referrals</p>
+                    <p id="ref-total" class="text-3xl font-bold text-gray-800">-</p>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray-500">Pending</p>
+                    <p id="ref-pending" class="text-3xl font-bold text-amber-600">-</p>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray-500">Approved</p>
+                    <p id="ref-approved" class="text-3xl font-bold text-green-600">-</p>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray-500">Commission Credits</p>
+                    <p id="ref-commission" class="text-3xl font-bold text-blue-600">-</p>
+                </div>
+            </div>
+
+            <div class="card mb-6">
+                <h3 class="font-semibold mb-4">Referral Program Settings</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input id="ref-rewardAmountCredits" type="number" class="border rounded-lg p-3" placeholder="Reward credits">
+                    <input id="ref-percentageCommission" type="number" class="border rounded-lg p-3" placeholder="Commission %">
+                    <input id="ref-minimumActivityCredits" type="number" class="border rounded-lg p-3" placeholder="Min activity credits">
+                    <input id="ref-dailyReferralLimit" type="number" class="border rounded-lg p-3" placeholder="Daily referral limit">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4 text-sm">
+                    <label><input id="ref-fraudBlockSameDevice" type="checkbox" class="mr-2">Block same device</label>
+                    <label><input id="ref-fraudBlockSameIp" type="checkbox" class="mr-2">Block same IP</label>
+                    <label><input id="ref-fraudBlockEmulator" type="checkbox" class="mr-2">Block emulator</label>
+                    <label><input id="ref-fraudBlockMultipleAccounts" type="checkbox" class="mr-2">Block multiple accounts</label>
+                </div>
+                <div class="mt-4">
+                    <button onclick="saveReferralSettings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Save Referral Settings</button>
+                </div>
+            </div>
+
+            <div class="card mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-semibold">Top Inviters</h3>
+                    <button onclick="exportReferralData()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm">Export JSON</button>
+                </div>
+                <div id="referral-leaders" class="space-y-3"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="font-semibold mb-4">Referral Relationships</h3>
+                <div id="referral-relationships" class="space-y-3"></div>
+            </div>
+        </div>
+
     </main>
 </div>
 
@@ -191,6 +245,7 @@ function switchTab(tab) {
     if (tab === 'fraud') loadFraud();
     if (tab === 'rules') loadRules();
     if (tab === 'flags') loadFlags();
+    if (tab === 'referrals') loadReferrals();
 }
 
 async function loadOverview() {
@@ -334,6 +389,112 @@ async function loadFlags() {
             </div>
         `).join('');
     } catch (e) { console.error(e); }
+}
+
+async function loadReferrals() {
+    try {
+        const [referralsRes, settingsRes] = await Promise.all([
+            api('/admin/referrals'),
+            api('/admin/referrals/settings')
+        ]);
+        const overview = referralsRes.data?.overview || {};
+        const relationships = referralsRes.data?.relationships || [];
+        const leaders = referralsRes.data?.leaders || [];
+        const settings = settingsRes.data || {};
+
+        document.getElementById('ref-total').textContent = overview.totalReferrals || 0;
+        document.getElementById('ref-pending').textContent = overview.pendingReferrals || 0;
+        document.getElementById('ref-approved').textContent = overview.approvedReferrals || 0;
+        document.getElementById('ref-commission').textContent = overview.totalCommissionCredits || 0;
+
+        document.getElementById('ref-rewardAmountCredits').value = settings.rewardAmountCredits || 0;
+        document.getElementById('ref-percentageCommission').value = settings.percentageCommission || 0;
+        document.getElementById('ref-minimumActivityCredits').value = settings.minimumActivityCredits || 0;
+        document.getElementById('ref-dailyReferralLimit').value = settings.dailyReferralLimit || 0;
+        document.getElementById('ref-fraudBlockSameDevice').checked = !!settings.fraudBlockSameDevice;
+        document.getElementById('ref-fraudBlockSameIp').checked = !!settings.fraudBlockSameIp;
+        document.getElementById('ref-fraudBlockEmulator').checked = !!settings.fraudBlockEmulator;
+        document.getElementById('ref-fraudBlockMultipleAccounts').checked = !!settings.fraudBlockMultipleAccounts;
+
+        document.getElementById('referral-leaders').innerHTML = leaders.length ? leaders.map((leader, index) => `
+            <div class="border rounded-lg p-4 flex justify-between items-center">
+                <div>
+                    <p class="font-medium">${index + 1}. ${leader.email || leader.userId}</p>
+                    <p class="text-sm text-gray-500">${leader.approvedReferrals || 0} approved referrals</p>
+                </div>
+                <span class="font-semibold text-blue-600">${leader.totalCommissionCredits || 0} credits</span>
+            </div>
+        `).join('') : '<p class="text-sm text-gray-400">No leaders yet</p>';
+
+        document.getElementById('referral-relationships').innerHTML = relationships.length ? relationships.map(item => `
+            <div class="border rounded-lg p-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <p class="font-medium">${item.inviterEmail || item.inviterUserId} → ${item.invitedEmail || item.invitedUserId}</p>
+                        <p class="text-sm text-gray-500">Status: <span class="font-semibold">${item.status}</span></p>
+                        <p class="text-xs text-gray-400">Fraud: ${item.fraudReasons || 'none'}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="approveReferral('${item.id}')" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Approve</button>
+                        <button onclick="rejectReferral('${item.id}')" class="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600">Reject</button>
+                    </div>
+                </div>
+            </div>
+        `).join('') : '<p class="text-sm text-gray-400">No referral relationships found</p>';
+    } catch (e) { console.error(e); }
+}
+
+async function saveReferralSettings() {
+    try {
+        await api('/admin/referrals/settings', 'POST', {
+            rewardAmountCredits: Number(document.getElementById('ref-rewardAmountCredits').value || 0),
+            percentageCommission: Number(document.getElementById('ref-percentageCommission').value || 0),
+            minimumActivityCredits: Number(document.getElementById('ref-minimumActivityCredits').value || 0),
+            dailyReferralLimit: Number(document.getElementById('ref-dailyReferralLimit').value || 0),
+            fraudBlockSameDevice: document.getElementById('ref-fraudBlockSameDevice').checked,
+            fraudBlockSameIp: document.getElementById('ref-fraudBlockSameIp').checked,
+            fraudBlockEmulator: document.getElementById('ref-fraudBlockEmulator').checked,
+            fraudBlockMultipleAccounts: document.getElementById('ref-fraudBlockMultipleAccounts').checked,
+            active: true
+        });
+        alert('Referral settings updated');
+    } catch (e) {
+        alert('Failed to save referral settings');
+    }
+}
+
+async function approveReferral(id) {
+    try {
+        await api(`/admin/referrals/${id}/approve`, 'POST');
+        loadReferrals();
+    } catch (e) {
+        alert('Failed to approve referral');
+    }
+}
+
+async function rejectReferral(id) {
+    const notes = prompt('Reason for rejection:') || 'Rejected by admin';
+    try {
+        await api(`/admin/referrals/${id}/reject`, 'POST', { notes });
+        loadReferrals();
+    } catch (e) {
+        alert('Failed to reject referral');
+    }
+}
+
+async function exportReferralData() {
+    try {
+        const res = await api('/admin/referrals');
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'adwatch-referrals-export.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        alert('Failed to export referral data');
+    }
 }
 
 async function toggleFlag(key, enabled) {

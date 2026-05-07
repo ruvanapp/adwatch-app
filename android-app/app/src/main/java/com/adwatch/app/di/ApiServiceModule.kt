@@ -3,6 +3,7 @@ package com.adwatch.app.di
 import com.adwatch.feature.ads.AdsApiService
 import com.adwatch.feature.cashout.CashoutApiService
 import com.adwatch.feature.home.HomeApiService
+import com.adwatch.feature.home.ReferralApiService
 import com.adwatch.feature.wallet.WalletApiService
 import dagger.Module
 import dagger.Provides
@@ -25,6 +26,12 @@ object ApiServiceModule {
     @Singleton
     fun provideHomeApiService(retrofit: Retrofit): HomeApiService {
         return retrofit.create(HomeApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReferralApiService(retrofit: Retrofit): ReferralApiService {
+        return retrofit.create(ReferralApiService::class.java)
     }
 
     @Provides

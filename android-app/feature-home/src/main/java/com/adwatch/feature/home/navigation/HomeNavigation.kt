@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.adwatch.feature.home.HomeScreen
+import com.adwatch.feature.home.ReferralScreen
 
 fun NavGraphBuilder.homeGraph(navController: NavHostController) {
     navigation(route = "home", startDestination = "home/main") {
@@ -12,7 +13,14 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController) {
             HomeScreen(
                 onNavigateToWatchAd = { navController.navigate("home/watch-ad") },
                 onNavigateToWallet = { navController.navigate("wallet/main") },
-                onNavigateToCashout = { navController.navigate("cashout/request") }
+                onNavigateToCashout = { navController.navigate("cashout/request") },
+                onNavigateToReferrals = { navController.navigate("home/referrals") }
+            )
+        }
+
+        composable("home/referrals") {
+            ReferralScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

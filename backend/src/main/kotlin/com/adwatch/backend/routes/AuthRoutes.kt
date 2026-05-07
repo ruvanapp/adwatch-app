@@ -3,6 +3,7 @@ package com.adwatch.backend.routes
 import com.adwatch.backend.domain.request.SignupRequest
 import com.adwatch.backend.domain.response.ApiResponse
 import com.adwatch.backend.service.AuditService
+import com.adwatch.backend.service.ReferralService
 import com.adwatch.backend.service.SecurityGuards
 import com.adwatch.backend.service.TrustService
 import com.adwatch.backend.service.ensureWallet
@@ -63,11 +64,29 @@ fun Route.authRoutes() {
                         }
                     }
                 }
+                ReferralService.ensureReferralProfile(finalUserId)
+                val signupIp = call.request.headers["X-Forwarded-For"]?.split(",")?.firstOrNull()?.trim()
+                    ?: call.request.local.remoteHost
+                ReferralService.attachReferral(
+                    invitedUserId = finalUserId,
+                    referralCode = request.referralCode,
+                    deviceHash = request.deviceHash,
+                    ipHash = com.adwatch.backend.service.Hashing.sha256(signupIp),
+                    emulatorFlag = request.emulatorFlag == true
+                )
                 ensureWallet(finalUserId)
                 AuditService.log("user", finalUserId, "user", finalUserId, "signup_created")
                 call.respond(HttpStatusCode.Created, ApiResponse(
                     success = true,
-                    data = mapOf("message" to "Signup completed", "userId" to finalUserId)
+                    data = mapOf(
+                        "message" to "Signup completed",
+                        "userId" to finalUserId,
+                        "referralCode" to dbQuery {
+                            com.adwatch.backend.data.table.ReferralProfiles.selectAll()
+                                .where { com.adwatch.backend.data.table.ReferralProfiles.userId eq finalUserId }
+                                .single()[com.adwatch.backend.data.table.ReferralProfiles.referralCode]
+                        }
+                    )
                 ))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(
@@ -138,13 +157,31 @@ fun Route.authRoutes() {
                         }
                     }
 
+                    ReferralService.ensureReferralProfile(userId)
+                    val googleIp = call.request.headers["X-Forwarded-For"]?.split(",")?.firstOrNull()?.trim()
+                        ?: call.request.local.remoteHost
+                    ReferralService.attachReferral(
+                        invitedUserId = userId,
+                        referralCode = request.referralCode,
+                        deviceHash = request.deviceHash,
+                        ipHash = com.adwatch.backend.service.Hashing.sha256(googleIp),
+                        emulatorFlag = request.emulatorFlag == true
+                    )
                     ensureWallet(userId)
                     AuditService.log("user", userId, "user", userId, "google_login")
                     call.respond(
                         HttpStatusCode.OK,
                         ApiResponse(
                             success = true,
-                            data = mapOf("message" to "Google login successful", "userId" to userId)
+                            data = mapOf(
+                                "message" to "Google login successful",
+                                "userId" to userId,
+                                "referralCode" to dbQuery {
+                                    com.adwatch.backend.data.table.ReferralProfiles.selectAll()
+                                        .where { com.adwatch.backend.data.table.ReferralProfiles.userId eq userId }
+                                        .single()[com.adwatch.backend.data.table.ReferralProfiles.referralCode]
+                                }
+                            )
                         )
                     )
                 } catch (_: Exception) {

@@ -39,6 +39,9 @@ fun Application.configureRouting() {
         // Wallet routes
         walletRoutes()
 
+        // Referral routes
+        referralRoutes()
+
         // Cashout routes
         cashoutRoutes()
 

@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
@@ -23,6 +24,7 @@ data class SignupUiState(
     val email: String = "",
     val password: String = "",
     val country: String = "",
+    val referralCode: String = "",
     val isLoading: Boolean = false,
     val isSignedUp: Boolean = false,
     val error: String? = null
@@ -38,6 +40,15 @@ class SignupViewModel @Inject constructor(
     
     private val _uiState = MutableStateFlow(SignupUiState())
     val uiState: StateFlow<SignupUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val pendingReferralCode = appPreferences.pendingReferralCode.first()
+            if (!pendingReferralCode.isNullOrBlank()) {
+                _uiState.value = _uiState.value.copy(referralCode = pendingReferralCode)
+            }
+        }
+    }
     
     fun onEmailChanged(email: String) {
         _uiState.value = _uiState.value.copy(email = email, error = null)
@@ -50,6 +61,10 @@ class SignupViewModel @Inject constructor(
     fun onCountryChanged(country: String) {
         _uiState.value = _uiState.value.copy(country = country, error = null)
     }
+
+    fun onReferralCodeChanged(referralCode: String) {
+        _uiState.value = _uiState.value.copy(referralCode = referralCode, error = null)
+    }
     
     fun signup() {
         viewModelScope.launch {
@@ -60,7 +75,8 @@ class SignupViewModel @Inject constructor(
                     SignupRequest(
                         email = _uiState.value.email,
                         password = _uiState.value.password,
-                        country = _uiState.value.country
+                        country = _uiState.value.country,
+                        referralCode = _uiState.value.referralCode.takeIf { it.isNotBlank() }
                     )
                 )
                 
@@ -69,6 +85,8 @@ class SignupViewModel @Inject constructor(
                     if (userId != null) {
                         appPreferences.setUserId(userId)
                         appPreferences.setUserEmail(_uiState.value.email)
+                        appPreferences.setReferralCode(response.data?.referralCode)
+                        appPreferences.setPendingReferralCode(null)
                         appPreferences.setLoggedIn(true)
                         SessionManager.userId = userId
                     }
@@ -106,7 +124,10 @@ class SignupViewModel @Inject constructor(
 
                 val response = authApiService.loginWithGoogle(
                     authorization = "Bearer $firebaseIdToken",
-                    request = GoogleLoginRequest(country = country)
+                    request = GoogleLoginRequest(
+                        country = country,
+                        referralCode = _uiState.value.referralCode.takeIf { it.isNotBlank() }
+                    )
                 )
 
                 if (response.success) {
@@ -114,6 +135,8 @@ class SignupViewModel @Inject constructor(
                     appPreferences.setUserId(userId)
                     appPreferences.setUserEmail(firebaseUser.email)
                     appPreferences.setAuthToken(firebaseIdToken)
+                    appPreferences.setReferralCode(response.data?.referralCode)
+                    appPreferences.setPendingReferralCode(null)
                     appPreferences.setLoggedIn(true)
                     SessionManager.userId = userId
                     SessionManager.authToken = firebaseIdToken

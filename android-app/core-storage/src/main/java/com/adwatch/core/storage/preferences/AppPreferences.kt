@@ -26,6 +26,8 @@ class AppPreferences @Inject constructor(
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
+        private val REFERRAL_CODE_KEY = stringPreferencesKey("referral_code")
+        private val PENDING_REFERRAL_CODE_KEY = stringPreferencesKey("pending_referral_code")
         private val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
         private val ONBOARDING_COMPLETE_KEY = booleanPreferencesKey("onboarding_complete")
     }
@@ -40,6 +42,14 @@ class AppPreferences @Inject constructor(
 
     val authToken: Flow<String?> = dataStore.data.map { prefs ->
         prefs[AUTH_TOKEN_KEY]
+    }
+
+    val referralCode: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[REFERRAL_CODE_KEY]
+    }
+
+    val pendingReferralCode: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[PENDING_REFERRAL_CODE_KEY]
     }
     
     val isLoggedIn: Flow<Boolean> = dataStore.data.map { prefs ->
@@ -76,6 +86,26 @@ class AppPreferences @Inject constructor(
                 prefs[AUTH_TOKEN_KEY] = token
             } else {
                 prefs.remove(AUTH_TOKEN_KEY)
+            }
+        }
+    }
+
+    suspend fun setReferralCode(code: String?) {
+        dataStore.edit { prefs ->
+            if (code != null) {
+                prefs[REFERRAL_CODE_KEY] = code
+            } else {
+                prefs.remove(REFERRAL_CODE_KEY)
+            }
+        }
+    }
+
+    suspend fun setPendingReferralCode(code: String?) {
+        dataStore.edit { prefs ->
+            if (code != null) {
+                prefs[PENDING_REFERRAL_CODE_KEY] = code
+            } else {
+                prefs.remove(PENDING_REFERRAL_CODE_KEY)
             }
         }
     }

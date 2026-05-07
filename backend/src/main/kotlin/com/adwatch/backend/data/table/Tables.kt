@@ -165,3 +165,76 @@ object FeatureFlags : Table("feature_flags") {
 
     override val primaryKey = PrimaryKey(flagName)
 }
+
+object ReferralProfiles : Table("referral_profiles") {
+    val userId = varchar("user_id", 50).references(Users.id)
+    val referralCode = varchar("referral_code", 32).uniqueIndex()
+    val referralLink = varchar("referral_link", 512)
+    val createdAt = timestamp("created_at").clientDefault { Instant.now() }
+    val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object ReferralRelationships : Table("referral_relationships") {
+    val id = varchar("id", 50)
+    val inviterUserId = varchar("inviter_user_id", 50).references(Users.id).index()
+    val invitedUserId = varchar("invited_user_id", 50).references(Users.id).uniqueIndex()
+    val referralCode = varchar("referral_code", 32).index()
+    val referralSource = varchar("referral_source", 20).default("manual")
+    val status = varchar("status", 20).default("pending")
+    val invitedDeviceHash = varchar("invited_device_hash", 255).nullable().index()
+    val invitedIpHash = varchar("invited_ip_hash", 255).nullable().index()
+    val fraudReasons = text("fraud_reasons").nullable()
+    val invitedAt = timestamp("invited_at").clientDefault { Instant.now() }
+    val approvedAt = timestamp("approved_at").nullable()
+    val rejectedAt = timestamp("rejected_at").nullable()
+    val lastCommissionAt = timestamp("last_commission_at").nullable()
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ReferralProgramSettings : Table("referral_program_settings") {
+    val id = varchar("id", 20)
+    val rewardAmountCredits = integer("reward_amount_credits").default(50)
+    val percentageCommission = integer("percentage_commission").default(10)
+    val minimumActivityCredits = integer("minimum_activity_credits").default(20)
+    val dailyReferralLimit = integer("daily_referral_limit").default(25)
+    val fraudBlockSameDevice = bool("fraud_block_same_device").default(true)
+    val fraudBlockSameIp = bool("fraud_block_same_ip").default(true)
+    val fraudBlockEmulator = bool("fraud_block_emulator").default(true)
+    val fraudBlockMultipleAccounts = bool("fraud_block_multiple_accounts").default(true)
+    val active = bool("active").default(true)
+    val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ReferralCommissionLogs : Table("referral_commission_logs") {
+    val id = varchar("id", 50)
+    val inviterUserId = varchar("inviter_user_id", 50).references(Users.id).index()
+    val invitedUserId = varchar("invited_user_id", 50).references(Users.id).index()
+    val relationshipId = varchar("relationship_id", 50).references(ReferralRelationships.id).index()
+    val sourceLedgerId = varchar("source_ledger_id", 50).nullable().index()
+    val sourceSessionId = varchar("source_session_id", 50).nullable()
+    val commissionType = varchar("commission_type", 20)
+    val creditsAwarded = integer("credits_awarded")
+    val status = varchar("status", 20).default("confirmed")
+    val metadataJson = text("metadata_json").nullable()
+    val createdAt = timestamp("created_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object UserNotifications : Table("user_notifications") {
+    val id = varchar("id", 50)
+    val userId = varchar("user_id", 50).references(Users.id).index()
+    val type = varchar("type", 50)
+    val title = varchar("title", 120)
+    val message = text("message")
+    val status = varchar("status", 20).default("unread")
+    val metadataJson = text("metadata_json").nullable()
+    val createdAt = timestamp("created_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(id)
+}

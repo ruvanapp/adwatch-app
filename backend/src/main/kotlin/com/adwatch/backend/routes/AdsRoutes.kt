@@ -11,6 +11,7 @@ import com.adwatch.backend.service.ApiFailure
 import com.adwatch.backend.service.AuditService
 import com.adwatch.backend.service.HeuristicService
 import com.adwatch.backend.service.RewardService
+import com.adwatch.backend.service.ReferralService
 import com.adwatch.backend.config.DatabaseFactory.dbQuery
 import com.adwatch.backend.data.table.AdWatchSessions
 import com.adwatch.backend.data.table.LedgerEntries
@@ -198,6 +199,11 @@ fun Route.adsRoutes() {
                             it[createdAt] = now
                         }
                     }
+                    ReferralService.onUserEarned(
+                        invitedUserId = ctx.userId,
+                        sourceSessionId = request.sessionId,
+                        earnedCredits = creditsEarned
+                    )
                     if (heuristics.isNotEmpty()) {
                         FraudService.recordFraudEvent(
                             userId = ctx.userId,

@@ -88,6 +88,17 @@ fun SignupScreen(
             singleLine = true,
             enabled = !uiState.isLoading
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = uiState.referralCode,
+            onValueChange = viewModel::onReferralCodeChanged,
+            label = { Text("Referral Code (optional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !uiState.isLoading
+        )
         
         Spacer(modifier = Modifier.height(24.dp))
         

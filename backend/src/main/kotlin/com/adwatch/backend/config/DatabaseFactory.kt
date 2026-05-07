@@ -57,7 +57,12 @@ object DatabaseFactory {
                 PayoutTransactions,
                 FraudEvents,
                 AuditLogs,
-                FeatureFlags
+                FeatureFlags,
+                ReferralProfiles,
+                ReferralRelationships,
+                ReferralProgramSettings,
+                ReferralCommissionLogs,
+                UserNotifications
             )
         }
     }

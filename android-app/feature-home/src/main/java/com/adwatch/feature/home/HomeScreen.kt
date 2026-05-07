@@ -1,5 +1,4 @@
 package com.adwatch.feature.home
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -7,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,15 +21,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.hilt.navigation.compose.hiltViewModel
 
+private const val TEST_REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToWatchAd: () -> Unit,
     onNavigateToWallet: () -> Unit,
     onNavigateToCashout: () -> Unit,
+    onNavigateToReferrals: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isUsingGoogleTestAds = remember {
+        TEST_REWARDED_AD_UNIT_ID.startsWith("ca-app-pub-3940256099942544/")
+    }
+    val canWatchAd = uiState.canWatchAd || isUsingGoogleTestAds
 
     Scaffold(
         topBar = {
@@ -189,12 +196,12 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = uiState.canWatchAd
+                    enabled = canWatchAd
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        if (uiState.canWatchAd) "Watch Ad & Earn"
+                        if (canWatchAd) "Watch Ad & Earn"
                         else if (uiState.nextAdAvailableIn != null) "Next ad in ${uiState.nextAdAvailableIn}s"
                         else "Daily limit reached"
                     )
@@ -221,6 +228,15 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Cash Out")
                     }
+                }
+
+                OutlinedButton(
+                    onClick = onNavigateToReferrals,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.GroupAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Invite Friends")
                 }
 
                 // Stats

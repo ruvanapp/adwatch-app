@@ -7,6 +7,7 @@ data class SignupRequest(
     val email: String? = null,
     val phone: String? = null,
     val country: String,
+    val referralCode: String? = null,
     val deviceHash: String? = null,
     val integrityToken: String? = null,
     val emulatorFlag: Boolean? = null,
@@ -70,4 +71,22 @@ data class UpdateFeatureFlagRequest(
     val enabled: Boolean,
     val countryScope: String? = null,
     val updatedBy: String? = "admin"
+)
+
+@Serializable
+data class ReferralProgramSettingsRequest(
+    val rewardAmountCredits: Int,
+    val percentageCommission: Int,
+    val minimumActivityCredits: Int,
+    val dailyReferralLimit: Int,
+    val fraudBlockSameDevice: Boolean,
+    val fraudBlockSameIp: Boolean,
+    val fraudBlockEmulator: Boolean,
+    val fraudBlockMultipleAccounts: Boolean,
+    val active: Boolean = true
+)
+
+@Serializable
+data class ReferralActionRequest(
+    val notes: String? = null
 )

@@ -10,6 +10,7 @@ data class SignupRequest(
     val email: String,
     val password: String,
     val country: String,
+    val referralCode: String? = null,
     val deviceHash: String = "android_device",
     val integrityToken: String? = null,
     val emulatorFlag: Boolean = false,
@@ -27,7 +28,8 @@ data class SignupResponse(
 @Serializable
 data class SignupData(
     val message: String,
-    val userId: String
+    val userId: String,
+    val referralCode: String? = null
 )
 
 @Serializable
@@ -39,6 +41,7 @@ data class LoginRequest(
 @Serializable
 data class GoogleLoginRequest(
     val country: String,
+    val referralCode: String? = null,
     val deviceHash: String = "android_device"
 )
 
@@ -53,7 +56,8 @@ data class LoginResponse(
 data class LoginData(
     val message: String,
     val token: String? = null,
-    val userId: String? = null
+    val userId: String? = null,
+    val referralCode: String? = null
 )
 
 interface AuthApiService {
