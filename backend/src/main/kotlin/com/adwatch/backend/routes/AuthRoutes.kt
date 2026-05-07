@@ -97,13 +97,14 @@ fun Route.authRoutes() {
         }
 
         post("/login") {
-            // Email/password login is not supported. All authentication is via Google Sign-In (Firebase).
+            // Email/password login: client must authenticate via Firebase and call /auth/google.
+            // This stub exists to provide a helpful error instead of 404.
             call.respond(
-                HttpStatusCode.Gone,
+                HttpStatusCode.UnprocessableEntity,
                 ApiResponse<Unit>(
                     success = false,
-                    error = "Email/password login is not supported. Please use Google Sign-In.",
-                    code = "USE_GOOGLE_SIGNIN"
+                    error = "Use Firebase email/password auth on device, then call /auth/google with the token.",
+                    code = "USE_FIREBASE_EMAIL_AUTH"
                 )
             )
         }

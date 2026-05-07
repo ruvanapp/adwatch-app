@@ -90,6 +90,17 @@ class SignupViewModel @Inject constructor(
                         appPreferences.setLoggedIn(true)
                         SessionManager.userId = userId
                     }
+                    // Create Firebase email/password account so the user can log back in later
+                    try {
+                        firebaseAuth.createUserWithEmailAndPassword(
+                            _uiState.value.email,
+                            _uiState.value.password
+                        ).await()
+                    } catch (_: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
+                        // Account already exists in Firebase — that's fine
+                    } catch (_: Exception) {
+                        // Non-critical: backend account already created, ignore Firebase failure
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isSignedUp = true

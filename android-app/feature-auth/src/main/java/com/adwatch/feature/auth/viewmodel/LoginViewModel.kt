@@ -49,33 +49,49 @@ class LoginViewModel @Inject constructor(
     fun login() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
+
             try {
-                val response = authApiService.login(
-                    LoginRequest(
-                        email = _uiState.value.email,
-                        password = _uiState.value.password
-                    )
+                // Sign in with Firebase email/password
+                val authResult = firebaseAuth
+                    .signInWithEmailAndPassword(_uiState.value.email, _uiState.value.password)
+                    .await()
+                val firebaseUser = authResult.user
+                    ?: throw IllegalStateException("Firebase login failed")
+                val firebaseIdToken = firebaseUser.getIdToken(true).await().token
+                    ?: throw IllegalStateException("Unable to get Firebase token")
+                val country = Locale.getDefault().country.takeIf { it.isNotBlank() } ?: "US"
+
+                // Register/fetch app user via the same /auth/google endpoint
+                val response = authApiService.loginWithGoogle(
+                    authorization = "Bearer $firebaseIdToken",
+                    request = GoogleLoginRequest(country = country)
                 )
-                
+
                 if (response.success) {
-                    val userId = response.data?.userId
-                    if (userId != null) {
-                        appPreferences.setUserId(userId)
-                        appPreferences.setUserEmail(_uiState.value.email)
-                        appPreferences.setLoggedIn(true)
-                        SessionManager.userId = userId
-                    }
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isLoggedIn = true
-                    )
+                    val userId = response.data?.userId ?: throw IllegalStateException("User ID missing")
+                    appPreferences.setUserId(userId)
+                    appPreferences.setUserEmail(firebaseUser.email)
+                    appPreferences.setAuthToken(firebaseIdToken)
+                    appPreferences.setLoggedIn(true)
+                    SessionManager.userId = userId
+                    SessionManager.authToken = firebaseIdToken
+                    _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = response.error ?: "Login failed"
                     )
                 }
+            } catch (e: com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Wrong email or password"
+                )
+            } catch (e: com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "No account found. Please sign up first."
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
