@@ -27,6 +27,16 @@ fun Application.configureRouting() {
             }
         }
 
+        get("/privacy-policy") {
+            val inputStream = this::class.java.classLoader.getResourceAsStream("static/privacy-policy.html")
+            if (inputStream != null) {
+                val html = inputStream.bufferedReader().use { it.readText() }
+                call.respondText(html, ContentType.Text.Html)
+            } else {
+                call.respondText("Privacy policy not available", status = HttpStatusCode.NotFound)
+            }
+        }
+
         // Auth routes
         authRoutes()
 
